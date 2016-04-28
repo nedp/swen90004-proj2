@@ -11,7 +11,7 @@ class Car {
     private final int id;
 
     // The next ID to be allocated
-    private static int nextId = 0;
+    private static int currentId = 0;
 
     // Create a new car with a given Id
     private Car(int id) {
@@ -20,8 +20,8 @@ class Car {
 
     // Get a new car instance with a unique Id
     static Car getNew() {
-        nextId += 1;
-        return new Car(nextId);
+        currentId += 1;
+        return new Car(currentId);
     }
 
     // Produce the Id of this car
@@ -32,7 +32,7 @@ class Car {
     // Produce an identifying string for the car
     @Override
     public String toString() {
-        return "[" + id + "] ";
+        return String.format("[%d]", id);
     }
 
     void arrive() {

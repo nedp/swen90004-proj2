@@ -3,26 +3,37 @@ package com.github.nedp.swen90004.carpark;
 /**
  * Created by nedp on 27/04/16.
  */
-class Vehicle extends Thread {
-    private final int id;
-    private final Section source;
-    private final Section destination;
+class Vehicle<T> extends Thread {
+    private final String id;
+    private final Producer<T> source;
+    private final Consumer<T> destination;
 
-    Vehicle(int id, Section source, Section destination) {
+    Vehicle(String id, Producer<T> source, Consumer<T> destination) {
         this.id = id;
         this.source = source;
         this.destination = destination;
+    }
+
+    Vehicle(int id, Producer<T> source, Consumer<T> destination) {
+        this(Integer.toString(id), source, destination);
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                final Car car = this.source.get();
-                this.destination.put(car);
+                final T item = source.get();
+                destination.getEmpty();
+                source.getMessage().ifPresent(msg -> {
+                    Logger.logEvent("%s %s", item, msg);
+                });
+                sleep(Param.TOWING_TIME);
+                Logger.logEvent("%s %s", item, destination.putMessage());
+                destination.put(item);
+                source.putEmpty();
             } catch (InterruptedException e) {
                 throw new RuntimeException(String.format(
-                        "Vehicle %d stopped; it was interrupted!", id), e);
+                        "Vehicle %s stopped; it was interrupted!", id), e);
             }
         }
     }

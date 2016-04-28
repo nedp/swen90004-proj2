@@ -11,7 +11,7 @@ class Param {
     final static int SECTIONS = 6;
 
     // The time interval at which Main checks threads are alive
-    final static int MAIN_INTERVAL = 50;
+    final static int MAIN_INTERVAL = 500;
 
     // The time it takes to operate the lift
     final static int OPERATE_TIME = 800;
@@ -32,12 +32,12 @@ class Param {
      * For simplicity, we assume uniformly distributed time lapses.
      * An exponential distribution might be a fairer assumption.
      */
-    private static int arrivalLapse() {
+    static int arrivalLapse() {
         Random random = new Random();
         return random.nextInt(MAX_ARRIVE_INTERVAL);
     }
 
-    private static int departureLapse() {
+    static int departureLapse() {
         Random random = new Random();
         return random.nextInt(MAX_DEPART_INTERVAL);
     }

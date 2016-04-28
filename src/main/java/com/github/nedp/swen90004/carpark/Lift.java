@@ -1,94 +1,61 @@
 package com.github.nedp.swen90004.carpark;
 
-import static com.github.nedp.swen90004.carpark.Level.LOWERED;
-import static com.github.nedp.swen90004.carpark.Level.RAISED;
+import java.util.Optional;
+
 import static java.lang.Thread.sleep;
 
 /**
- * Created by nedp on 27/04/16.
+ * Created by nedp on 28/04/16.
  */
-class Lift {
+public class Lift<T> implements Resource<T> {
 
-    private Car car;
-    private Level level;
-    private boolean reservedLowered;
-    private boolean reservedRaised;
+    private final MultiResource<T> multiResource;
+    private final int putLevel;
+    private final int getLevel;
 
-    Lift() {
-        car = null;
-        level = LOWERED;
-        reservedLowered = false;
-        reservedRaised = false;
+    public Lift(MultiResource<T> multiResource, int putLevel, int getLevel) {
+        this.multiResource = multiResource;
+        this.putLevel = putLevel;
+        this.getLevel = getLevel;
     }
 
-    synchronized void operateIfNeeded() throws InterruptedException {
-        if (car != null) {
-            return;
-        }
-        switch (level) {
-            case LOWERED:
-                if (reservedRaised && !reservedLowered) lowerNow();
-            case RAISED:
-                if (reservedLowered && !reservedRaised) raiseNow();
-        }
-        notifyAll();
+    @Override
+    public void putEmpty() throws InterruptedException {
+        multiResource.putEmpty(getLevel);
     }
 
-    private void raiseNow() throws InterruptedException {
-        System.out.println("lift starts raising");
+    @Override
+    public void put(T item) throws InterruptedException {
         sleep(Param.OPERATE_TIME);
-        System.out.println("lift finishes raising");
-        level = RAISED;
+        multiResource.put(putLevel, getLevel, item);
     }
 
-    private void lowerNow() throws InterruptedException {
-        System.out.println("lift starts lowering");
-        sleep(Param.OPERATE_TIME);
-        System.out.println("lift finishes lowering");
-        level = LOWERED;
-    }
-
-    synchronized void putAndRaise(Car car) throws InterruptedException {
-        while (level != LOWERED || this.car != null) {
-            reservedLowered = true;
-            wait();
+    @Override
+    public String putMessage() {
+        if (putLevel == 0) {
+            return String.format("enters %s to go up", this);
+        } else {
+            return String.format("enters %s to go down", this);
         }
-        this.car = car;
-        System.out.printf("%s enters the lift to go up\n", car);
-        reservedLowered = false;
-        raiseNow();
-        notifyAll();
     }
 
-    synchronized void putAndLower(Car car) throws InterruptedException {
-        while (level != RAISED || this.car != null) {
-            reservedRaised = true;
-            wait();
-        }
-        this.car = car;
-        System.out.printf("%s enters the lift to go down\n", car);
-        reservedLowered = false;
-        lowerNow();
-        notifyAll();
+    @Override
+    public void getEmpty() throws InterruptedException {
+        multiResource.getEmpty(putLevel);
     }
 
-    synchronized Car getRaised() throws InterruptedException {
-        while (level != RAISED || this.car == null) {
-            wait();
-        }
-        final Car car = this.car;
-        this.car = null;
-        notifyAll();
-        return car;
+    @Override
+    public T get() throws InterruptedException {
+        return multiResource.get(getLevel);
     }
 
-    synchronized Car getLowered() throws InterruptedException {
-        while (level != LOWERED || this.car == null) {
-            wait();
-        }
-        final Car car = this.car;
-        this.car = null;
-        notifyAll();
-        return car;
+    @Override
+    public Optional<String> getMessage() {
+        return Optional.of(String.format("leaves %s", this));
+    }
+
+    @Override
+    public String toString() {
+        return multiResource.toString();
     }
 }

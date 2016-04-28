@@ -1,27 +1,14 @@
 package com.github.nedp.swen90004.carpark;
 
+import java.util.Optional;
+
 /**
- * Created by nedp on 27/04/16.
+ * Created by nedp on 28/04/16.
  */
-class Producer extends Thread {
+interface Producer<T> {
+    void putEmpty() throws InterruptedException;
 
-    private final Lift lift;
+    T get() throws InterruptedException;
 
-    Producer(Lift lift) {
-        this.lift = lift;
-    }
-
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                final Car car = Car.getNew();
-                car.arrive();
-                lift.putAndRaise(car);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(
-                        "Producer stopped; it was interrupted!", e);
-            }
-        }
-    }
+    Optional<String> getMessage();
 }

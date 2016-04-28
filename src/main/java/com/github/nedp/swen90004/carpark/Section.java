@@ -1,34 +1,61 @@
 package com.github.nedp.swen90004.carpark;
 
+import java.util.Optional;
+
 /**
  * Created by nedp on 27/04/16.
  */
-class Section {
+class Section<T> implements Resource<T> {
 
     private final int id;
+    private final Channel<Void> empty = new Channel<>();
+    private final Channel<T> full = new Channel<>();
+    private final String getMessage;
+    private final String putMessage;
 
-    private Car car = null;
+    Section(int id, String getMessage, String putMessage) {
+        this.id = id;
+        this.getMessage = getMessage;
+        this.putMessage = putMessage;
+        try {
+            empty.put(null);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Unexpected wait!", e);
+        }
+    }
 
     Section(int id) {
-        this.id = id;
+        this(id, String.format("leaves section %d", id),
+                String.format("enters section %d", id));
     }
 
-    synchronized void put(Car car) throws InterruptedException {
-        while (this.car != null) {
-            wait();
-        }
-        this.car = car;
-        System.out.printf("%s enters section %d\n", car, id  );
-        notifyAll();
+    @Override
+    public void putEmpty() throws InterruptedException {
+        this.empty.put(null);
     }
 
-    synchronized Car get() throws InterruptedException {
-        while (this.car == null) {
-            wait();
-        }
-        Car car = this.car;
-        this.car = null;
-        notifyAll();
-        return car;
+    @Override
+    public void put(T item) throws InterruptedException {
+        this.full.put(item);
+    }
+
+    @Override
+    public void getEmpty() throws InterruptedException {
+        this.empty.get();
+    }
+
+    @Override
+    public String putMessage() {
+        return putMessage;
+    }
+
+    @Override
+    public T get() throws InterruptedException {
+        return this.full.get();
+    }
+
+    @Override
+    public Optional<String> getMessage() {
+        return Optional.of(getMessage);
     }
 }
