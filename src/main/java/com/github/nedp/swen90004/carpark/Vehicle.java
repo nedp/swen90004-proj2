@@ -19,11 +19,17 @@ class Vehicle<T> extends Thread {
     }
 
     @Override
+    public String toString() {
+        return id;
+    }
+
+    @Override
     public void run() {
         while (true) {
             try {
-                final T item = source.get();
+                source.waitForFull();
                 destination.getEmpty();
+                final T item = source.getNow();
                 sleep(Param.TOWING_TIME);
                 destination.put(item);
                 source.putEmpty();

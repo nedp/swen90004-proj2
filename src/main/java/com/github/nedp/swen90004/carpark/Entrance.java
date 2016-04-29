@@ -30,9 +30,13 @@ class Entrance implements Producer<Car> {
     }
 
     @Override
-    public Car get() throws InterruptedException {
-        ready.get();
+    public Car getNow() {
         return car;
+    }
+
+    @Override
+    public void waitForFull() throws InterruptedException {
+        ready.get();
     }
 
     private void getNewCar() {

@@ -38,6 +38,19 @@ class Section<T> implements Resource<T> {
     }
 
     @Override
+    public T getNow() {
+        final T item = this.item;
+        this.item = null;
+        Logger.logEvent("%s %s", item, getMessage);
+        return item;
+    }
+
+    @Override
+    public void waitForFull() throws InterruptedException {
+        item = this.full.get();
+    }
+
+    @Override
     public void put(T item) throws InterruptedException {
         full.put(item);
         this.item = item;
@@ -47,13 +60,6 @@ class Section<T> implements Resource<T> {
     @Override
     public void getEmpty() throws InterruptedException {
         empty.get();
-    }
-
-    @Override
-    public T get() throws InterruptedException {
-        final T item =  full.get();
-        Logger.logEvent("%s %s", item, getMessage);
-        return item;
     }
 
     @Override

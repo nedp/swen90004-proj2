@@ -11,22 +11,22 @@ class Param {
     final static int SECTIONS = 6;
 
     // The time interval at which Main checks threads are alive
-    final static int MAIN_INTERVAL = 500;
+    final static int MAIN_INTERVAL = 50;
 
     // The time it takes to operate the lift
-    final static int OPERATE_TIME = 800;
+    final static int OPERATE_TIME = 2;
 
     // The time it takes to tow
-    final static int TOWING_TIME = 1200;
+    final static int TOWING_TIME = 120;
 
     // The maximum amount of time between car arrivals
-    private final static int MAX_ARRIVE_INTERVAL = 2400;
+    private final static int MAX_ARRIVE_INTERVAL = 20;
 
     // The maximum amount of time between car departures
-    private final static int MAX_DEPART_INTERVAL = 800;
+    private final static int MAX_DEPART_INTERVAL = 20;
 
     // The maximum amount of time between operating the lift
-    private final static int MAX_OPERATE_INTERVAL = 6400;
+    private final static int MAX_OPERATE_INTERVAL = 2;
 
     /**
      * For simplicity, we assume uniformly distributed time lapses.

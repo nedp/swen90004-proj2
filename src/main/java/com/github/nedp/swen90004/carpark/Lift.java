@@ -13,6 +13,8 @@ class Lift<T> implements Resource<T> {
     private final int putLevel;
     private final int getLevel;
 
+    T item = null;
+
     public Lift(MultiResource<T> multiResource, int putLevel, int getLevel) {
         this.multiResource = multiResource;
         this.putLevel = putLevel;
@@ -22,6 +24,11 @@ class Lift<T> implements Resource<T> {
     @Override
     public void putEmpty() throws InterruptedException {
         multiResource.putEmpty(getLevel);
+    }
+
+    @Override
+    public void waitForFull() throws InterruptedException {
+        item = this.multiResource.get(getLevel);
     }
 
     @Override
@@ -41,8 +48,9 @@ class Lift<T> implements Resource<T> {
     }
 
     @Override
-    public T get() throws InterruptedException {
-        final T item = multiResource.get(getLevel);
+    public T getNow() {
+        final T item = this.item;
+        this.item = null;
         Logger.logEvent("%s exits %s", item, this);
         return item;
     }

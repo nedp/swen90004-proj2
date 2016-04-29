@@ -8,5 +8,7 @@ import java.util.Optional;
 interface Producer<T> {
     void putEmpty() throws InterruptedException;
 
-    T get() throws InterruptedException;
+    T getNow();
+
+    void waitForFull() throws InterruptedException;
 }

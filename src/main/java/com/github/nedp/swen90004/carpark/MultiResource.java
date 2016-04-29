@@ -3,7 +3,6 @@ package com.github.nedp.swen90004.carpark;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created by nedp on 28/04/16.
