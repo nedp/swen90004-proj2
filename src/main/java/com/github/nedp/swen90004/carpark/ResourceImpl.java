@@ -1,11 +1,9 @@
 package com.github.nedp.swen90004.carpark;
 
-import java.util.Optional;
-
 /**
  * Created by nedp on 27/04/16.
  */
-class Section<T> implements Resource<T> {
+class ResourceImpl<T> implements Resource<T> {
 
     private final int id;
     private final Channel<Void> empty = new Channel<>();
@@ -15,7 +13,7 @@ class Section<T> implements Resource<T> {
 
     private T item = null;
 
-    private Section(int id, String getMessage, String putMessage) {
+    private ResourceImpl(int id, String getMessage, String putMessage) {
         this.id = id;
         this.getMessage = getMessage;
         this.putMessage = putMessage;
@@ -26,7 +24,7 @@ class Section<T> implements Resource<T> {
         }
     }
 
-    Section(int id) {
+    ResourceImpl(int id) {
         this(id, String.format("leaves section %d", id),
                 String.format("enters section %d", id));
     }

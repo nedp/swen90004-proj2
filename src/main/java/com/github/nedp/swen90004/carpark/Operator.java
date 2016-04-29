@@ -5,9 +5,9 @@ package com.github.nedp.swen90004.carpark;
  */
 class Operator extends Thread {
 
-    private final Lift lift;
+    private final MultiResource lift;
 
-    Operator(Lift lift) {
+    Operator(MultiResource lift) {
         this.lift = lift;
     }
 

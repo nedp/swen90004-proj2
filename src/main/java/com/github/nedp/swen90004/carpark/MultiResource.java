@@ -9,9 +9,10 @@ import static java.lang.Thread.sleep;
 /**
  * Created by nedp on 28/04/16.
  */
-class Lift<T> {
+class MultiResource<T> {
 
     private final int nResources;
+    private final String name;
     private int level = 0;
 
     private final List<NullChannel> empty;
@@ -21,8 +22,9 @@ class Lift<T> {
     private final List<Channel<T>> full;
     private final boolean[] reservations;
 
-    Lift(int nResources) {
+    MultiResource(int nResources, String name) {
         this.nResources = nResources;
+        this.name = name;
         empty = nullChannels(nResources);
         try {
             empty.get(0).put();
@@ -110,13 +112,8 @@ class Lift<T> {
         this.level = level;
     }
 
-    @Override
-    public String toString() {
-        return "lift";
-    }
-
     String state(int level) {
         return (this.level != level) ? ""
-                : String.format("{%8s:%6s}", this, item);
+                : String.format("{%8s:%6s}", name, item);
     }
 }

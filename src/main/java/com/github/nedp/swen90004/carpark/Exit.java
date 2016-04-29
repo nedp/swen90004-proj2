@@ -5,11 +5,11 @@ import static java.lang.Thread.sleep;
 /**
  * Created by nedp on 28/04/16.
  */
-class Exit implements Consumer<Car> {
+class Exit<T> implements Consumer<T> {
 
     private final NullChannel ready = new NullChannel();
 
-    private Car car;
+    private T item;
 
     Exit() {
         try {
@@ -23,17 +23,17 @@ class Exit implements Consumer<Car> {
     public void getEmpty() throws InterruptedException {
         ready.get();
         sleep(Param.departureLapse());
-        Logger.logEvent("%s departs", car);
-        this.car = null;
+        Logger.logEvent("%s departs", item);
+        this.item = null;
     }
 
     @Override
-    public void put(Car car) throws InterruptedException {
+    public void put(T item) throws InterruptedException {
         ready.put();
-        this.car = car;
+        this.item = item;
     }
 
     String state() {
-        return String.format("{exit:%6s}", car);
+        return String.format("{exit:%6s}", item);
     }
 }
