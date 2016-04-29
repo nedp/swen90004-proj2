@@ -7,6 +7,4 @@ interface Consumer<T> {
     void put(T item) throws InterruptedException;
 
     void getEmpty() throws InterruptedException;
-
-    String putMessage();
 }

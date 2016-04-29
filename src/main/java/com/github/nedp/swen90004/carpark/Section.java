@@ -13,7 +13,9 @@ class Section<T> implements Resource<T> {
     private final String getMessage;
     private final String putMessage;
 
-    Section(int id, String getMessage, String putMessage) {
+    private T item = null;
+
+    private Section(int id, String getMessage, String putMessage) {
         this.id = id;
         this.getMessage = getMessage;
         this.putMessage = putMessage;
@@ -31,31 +33,31 @@ class Section<T> implements Resource<T> {
 
     @Override
     public void putEmpty() throws InterruptedException {
-        this.empty.put(null);
+        empty.put(null);
+        item = null;
     }
 
     @Override
     public void put(T item) throws InterruptedException {
-        this.full.put(item);
+        full.put(item);
+        this.item = item;
+        Logger.logEvent("%s %s", item, putMessage);
     }
 
     @Override
     public void getEmpty() throws InterruptedException {
-        this.empty.get();
-    }
-
-    @Override
-    public String putMessage() {
-        return putMessage;
+        empty.get();
     }
 
     @Override
     public T get() throws InterruptedException {
-        return this.full.get();
+        final T item =  full.get();
+        Logger.logEvent("%s %s", item, getMessage);
+        return item;
     }
 
     @Override
-    public Optional<String> getMessage() {
-        return Optional.of(getMessage);
+    public String state() {
+        return String.format("{%4d:%6s}", id, item);
     }
 }

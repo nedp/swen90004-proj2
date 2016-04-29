@@ -7,7 +7,7 @@ import static java.lang.Thread.sleep;
 /**
  * Created by nedp on 28/04/16.
  */
-public class Lift<T> implements Resource<T> {
+class Lift<T> implements Resource<T> {
 
     private final MultiResource<T> multiResource;
     private final int putLevel;
@@ -26,17 +26,13 @@ public class Lift<T> implements Resource<T> {
 
     @Override
     public void put(T item) throws InterruptedException {
+        if (putLevel == 0) {
+            Logger.logEvent("%s enters %s to go up", item, this);
+        } else {
+            Logger.logEvent("%s enters %s to go down", item, this);
+        }
         sleep(Param.OPERATE_TIME);
         multiResource.put(putLevel, getLevel, item);
-    }
-
-    @Override
-    public String putMessage() {
-        if (putLevel == 0) {
-            return String.format("enters %s to go up", this);
-        } else {
-            return String.format("enters %s to go down", this);
-        }
     }
 
     @Override
@@ -46,16 +42,18 @@ public class Lift<T> implements Resource<T> {
 
     @Override
     public T get() throws InterruptedException {
-        return multiResource.get(getLevel);
-    }
-
-    @Override
-    public Optional<String> getMessage() {
-        return Optional.of(String.format("leaves %s", this));
+        final T item = multiResource.get(getLevel);
+        Logger.logEvent("%s exits %s", item, this);
+        return item;
     }
 
     @Override
     public String toString() {
         return multiResource.toString();
+    }
+
+    @Override
+    public String state() {
+        return null;
     }
 }

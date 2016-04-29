@@ -30,12 +30,12 @@ class Operator extends Thread {
             return;
         }
         if (destination == 0) {
-            Logger.logEvent("%s goes down\n", multiResource);
+            Logger.logEvent("%s goes down", multiResource);
         } else {
-            Logger.logEvent("%s goes up\n", multiResource);
+            Logger.logEvent("%s goes up", multiResource);
         }
         sleep(Param.OPERATE_TIME);
-        Logger.logEvent("%s arrives\n", multiResource);
+        Logger.logEvent("%s arrives", multiResource);
         multiResource.putEmpty(destination);
     }
 }

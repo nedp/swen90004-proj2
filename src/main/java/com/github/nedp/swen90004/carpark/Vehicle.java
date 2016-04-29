@@ -24,11 +24,7 @@ class Vehicle<T> extends Thread {
             try {
                 final T item = source.get();
                 destination.getEmpty();
-                source.getMessage().ifPresent(msg -> {
-                    Logger.logEvent("%s %s", item, msg);
-                });
                 sleep(Param.TOWING_TIME);
-                Logger.logEvent("%s %s", item, destination.putMessage());
                 destination.put(item);
                 source.putEmpty();
             } catch (InterruptedException e) {

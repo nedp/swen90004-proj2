@@ -9,6 +9,4 @@ interface Producer<T> {
     void putEmpty() throws InterruptedException;
 
     T get() throws InterruptedException;
-
-    Optional<String> getMessage();
 }

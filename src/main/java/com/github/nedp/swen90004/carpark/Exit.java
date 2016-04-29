@@ -25,14 +25,10 @@ class Exit implements Consumer<Car> {
     }
 
     @Override
-    public String putMessage() {
-        return "departs";
-    }
-
-    @Override
     public void put(Car car) throws InterruptedException {
         this.car = car;
         sleep(Param.departureLapse());
+        Logger.logEvent("%s departs", car);
         this.car = null;
         ready.put();
     }

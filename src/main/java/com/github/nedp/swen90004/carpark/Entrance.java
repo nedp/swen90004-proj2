@@ -35,11 +35,6 @@ class Entrance implements Producer<Car> {
         return car;
     }
 
-    @Override
-    public Optional<String> getMessage() {
-        return Optional.empty();
-    }
-
     private void getNewCar() {
         car = Car.getNew();
         Logger.logEvent("%s arrives", car);

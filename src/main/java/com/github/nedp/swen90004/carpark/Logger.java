@@ -12,18 +12,6 @@ class Logger {
 
     private static LogType LOG_TYPE = LogType.BOTH;
 
-    static void logEvent(String message) {
-        switch (LOG_TYPE) {
-            case EVENT:
-            case BOTH:
-                System.out.println(message);
-                break;
-
-            default: // Do nothing
-                break;
-        }
-    }
-
     static void logEvent(String format, Object... arguments) {
         switch (LOG_TYPE) {
             case EVENT:
