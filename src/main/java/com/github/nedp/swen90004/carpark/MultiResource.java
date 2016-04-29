@@ -70,7 +70,7 @@ class MultiResource<T> {
 
         if (!reservations[level]) {
             for (int i = 0; i < nResources; i += 1) {
-                if (i != level && reservations[i]) {
+                if (reservations[i]) {
                     return i;
                 }
             }
