@@ -29,8 +29,8 @@ class Exit implements Consumer<Car> {
 
     @Override
     public void put(Car car) throws InterruptedException {
-        this.car = car;
         ready.put();
+        this.car = car;
     }
 
     String state() {

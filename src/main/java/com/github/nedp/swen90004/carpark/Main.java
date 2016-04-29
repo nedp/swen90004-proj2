@@ -94,7 +94,7 @@ class Main {
             }
             Logger.logState("%18s", lift.state(LEVELS-1));
             // Draw the lower level.
-            Logger.logState("\n%18s %s %s %74s %s %s %18s\n",
+            Logger.logState("\n%18s %s %s %72s %s %s %18s\n",
                     lift.state(0),
                     vehicles.get(0).state(),
                     entrance.state(),
