@@ -32,4 +32,8 @@ class Exit implements Consumer<Car> {
         this.car = null;
         ready.put();
     }
+
+    String state() {
+        return String.format("{exit:%6s}", car);
+    }
 }

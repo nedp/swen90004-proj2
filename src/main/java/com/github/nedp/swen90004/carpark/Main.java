@@ -18,7 +18,7 @@ class Main {
      */
     public static void main(String [] args) {
         // Generate the lift
-        final MultiResource<Car> lift = new MultiResource<>(LEVELS);
+        final Lift<Car> lift = new Lift<>(LEVELS);
 
         // Create a list of car park spaces
         final List<Section<Car>> sections = new ArrayList<>(2);
@@ -29,15 +29,15 @@ class Main {
         }
 
         // Generate the producer, the consumer and the operator
-        final Producer<Car> entrance = new Entrance();
-        final Consumer<Car> exit = new Exit();
+        final Entrance entrance = new Entrance();
+        final Exit exit = new Exit();
         final Operator operator = new Operator(lift);
 
         // Create the entrances and exits to the lift.
         final Resource<Car> raisingLift =
-                new Lift<>(lift, 0, LEVELS - 1);
+                new LiftResource<>(lift, 0, LEVELS - 1);
         final Resource<Car> loweringLift =
-                new Lift<>(lift, LEVELS - 1, 0);
+                new LiftResource<>(lift, LEVELS - 1, 0);
 
         // Create a list of towing vehicles
         final List<Vehicle<Car>> vehicles = new ArrayList<>(Param.SECTIONS + 3);
@@ -71,9 +71,11 @@ class Main {
         }
         operator.start();
 
-        // Regularly check on the status of threads
+        // Until the operator or one of the vehicles die,
+        // keep drawing new frames.
         boolean vehiclesAreAlive = true;
         while (operator.isAlive() && vehiclesAreAlive) {
+            // Have a delay between frames.
             try {
                 Thread.sleep(Param.MAIN_INTERVAL);
             }
@@ -81,6 +83,19 @@ class Main {
                 System.out.println("Main was interrupted");
                 break;
             }
+
+            // Draw the state.
+            Logger.logState(vehicles.get(1).state());
+            for (int i = 0; i < sections.size(); i += 1) {
+                Logger.logState(sections.get(i).state());
+                Logger.logState(vehicles.get(i + 2).state());
+            }
+            Logger.logState("\n%s%s%s%s%s\n",
+                    entrance.state(), vehicles.get(0).state(),
+                    lift.state(),
+                    vehicles.get(vehicles.size()-1).state(), exit.state());
+
+            // Check that all vehicles are alive after drawing the state.
             for (final Vehicle vehicle : vehicles) {
                  vehiclesAreAlive &= vehicle.isAlive();
             }

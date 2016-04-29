@@ -23,7 +23,6 @@ class Entrance implements Producer<Car> {
 
     @Override
     public void putEmpty() throws InterruptedException {
-        car = null;
         sleep(Param.arrivalLapse());
         getNewCar();
         ready.put();
@@ -31,6 +30,8 @@ class Entrance implements Producer<Car> {
 
     @Override
     public Car getNow() {
+        final Car car = this.car;
+        this.car = null;
         return car;
     }
 
@@ -42,5 +43,9 @@ class Entrance implements Producer<Car> {
     private void getNewCar() {
         car = Car.getNew();
         Logger.logEvent("%s arrives", car);
+    }
+
+    String state() {
+        return String.format("{entrance:%6s}", car);
     }
 }

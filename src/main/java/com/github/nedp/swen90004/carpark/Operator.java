@@ -5,10 +5,10 @@ package com.github.nedp.swen90004.carpark;
  */
 class Operator extends Thread {
 
-    private final MultiResource multiResource;
+    private final Lift lift;
 
-    Operator(MultiResource multiResource) {
-        this.multiResource = multiResource;
+    Operator(Lift lift) {
+        this.lift = lift;
     }
 
     @Override
@@ -25,17 +25,17 @@ class Operator extends Thread {
     }
 
     private void operateIfNeeded() throws InterruptedException {
-        final Integer destination = multiResource.nextReservation();
+        final Integer destination = lift.nextReservation();
         if (null == destination) {
             return;
         }
         if (destination == 0) {
-            Logger.logEvent("%s goes down", multiResource);
+            Logger.logEvent("%s goes down", lift);
         } else {
-            Logger.logEvent("%s goes up", multiResource);
+            Logger.logEvent("%s goes up", lift);
         }
         sleep(Param.OPERATE_TIME);
-        Logger.logEvent("%s arrives", multiResource);
-        multiResource.putEmpty(destination);
+        Logger.logEvent("%s arrives", lift);
+        lift.putEmpty(destination);
     }
 }

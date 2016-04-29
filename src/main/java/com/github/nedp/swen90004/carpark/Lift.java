@@ -1,67 +1,113 @@
 package com.github.nedp.swen90004.carpark;
 
-import java.util.Optional;
-
-import static java.lang.Thread.sleep;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by nedp on 28/04/16.
  */
-class Lift<T> implements Resource<T> {
+class Lift<T> {
 
-    private final MultiResource<T> multiResource;
-    private final int putLevel;
-    private final int getLevel;
+    private final int nResources;
+    private int level = 0;
 
-    T item = null;
+    private final List<NullChannel> empty;
 
-    public Lift(MultiResource<T> multiResource, int putLevel, int getLevel) {
-        this.multiResource = multiResource;
-        this.putLevel = putLevel;
-        this.getLevel = getLevel;
-    }
+    private T item = null;
 
-    @Override
-    public void putEmpty() throws InterruptedException {
-        multiResource.putEmpty(getLevel);
-    }
+    private final List<Channel<T>> full;
+    private final boolean[] reservations;
 
-    @Override
-    public void waitForFull() throws InterruptedException {
-        item = this.multiResource.get(getLevel);
-    }
-
-    @Override
-    public void put(T item) throws InterruptedException {
-        if (putLevel == 0) {
-            Logger.logEvent("%s enters %s to go up", item, this);
-        } else {
-            Logger.logEvent("%s enters %s to go down", item, this);
+    Lift(int nResources) {
+        this.nResources = nResources;
+        empty = nullChannels(nResources);
+        try {
+            empty.get(0).put();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Unexpected wait", e);
         }
-        sleep(Param.OPERATE_TIME);
-        multiResource.put(putLevel, getLevel, item);
+        full = channels(nResources);
+        reservations = new boolean[nResources];
     }
 
-    @Override
-    public void getEmpty() throws InterruptedException {
-        multiResource.getEmpty(putLevel);
+    private static <S> List<Channel<S>> channels(int n) {
+        final List<Channel<S>> channels = new ArrayList<>(n);
+        for (int i = 0; i < n; i += 1) {
+            channels.add(new Channel<>());
+        }
+        return Collections.unmodifiableList(channels);
     }
 
-    @Override
-    public T getNow() {
-        final T item = this.item;
-        this.item = null;
-        Logger.logEvent("%s exits %s", item, this);
-        return item;
+    private static List<NullChannel> nullChannels(int n) {
+        final List<NullChannel> channels = new ArrayList<>(n);
+        for (int i = 0; i < n; i += 1) {
+            channels.add(new NullChannel());
+        }
+        return Collections.unmodifiableList(channels);
+    }
+
+    void putEmpty(int level) throws InterruptedException {
+        setLevel(level);
+        empty.get(level).put();
+    }
+
+    void put(int source, int destination, T item) throws InterruptedException {
+        full.get(destination).put(item);
+        assert(level == source);
+        setLevel(destination);
+    }
+
+    Integer nextReservation() throws InterruptedException {
+        final boolean isEmpty = empty.get(level).getNow();
+        if (!isEmpty) {
+            return null;
+        }
+
+        if (!reservations[level]) {
+            for (int i = 0; i < nResources; i += 1) {
+                if (i != level && reservations[i]) {
+                    return i;
+                }
+            }
+        }
+        empty.get(level).put();
+        return null;
+    }
+
+    void getEmpty(int level) throws InterruptedException {
+        reserve(level);
+        empty.get(level).get();
+        release(level);
+    }
+
+    T get(int level) throws InterruptedException {
+        return full.get(level).get();
+    }
+
+    private synchronized void reserve(int level) throws InterruptedException {
+        while (reservations[level]) {
+            wait();
+        }
+        reservations[level] = true;
+    }
+
+    private synchronized void release(int level) {
+        assert(reservations[level]);
+        reservations[level] = false;
+        notifyAll();
+    }
+
+    private void setLevel(int level) {
+        this.level = level;
     }
 
     @Override
     public String toString() {
-        return multiResource.toString();
+        return "lift";
     }
 
-    @Override
-    public String state() {
-        return null;
+    String state() {
+        return String.format("{%8s:%6s}", this, item);
     }
 }

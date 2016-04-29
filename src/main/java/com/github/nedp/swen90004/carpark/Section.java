@@ -62,8 +62,7 @@ class Section<T> implements Resource<T> {
         empty.get();
     }
 
-    @Override
-    public String state() {
+    String state() {
         return String.format("{%4d:%6s}", id, item);
     }
 }
