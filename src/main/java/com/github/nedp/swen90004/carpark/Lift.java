@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Created by nedp on 28/04/16.
  */
@@ -53,9 +55,9 @@ class Lift<T> {
     }
 
     void put(int source, int destination, T item) throws InterruptedException {
-        full.get(destination).put(item);
         assert(level == source);
-        setLevel(destination);
+        this.item = item;
+        full.get(destination).put(item);
     }
 
     Integer nextReservation() throws InterruptedException {
@@ -82,7 +84,10 @@ class Lift<T> {
     }
 
     T get(int level) throws InterruptedException {
-        return full.get(level).get();
+        final T item = full.get(level).get();
+        setLevel(level);
+        this.item = null;
+        return item;
     }
 
     private synchronized void reserve(int level) throws InterruptedException {
@@ -98,7 +103,10 @@ class Lift<T> {
         notifyAll();
     }
 
-    private void setLevel(int level) {
+    private void setLevel(int level) throws InterruptedException {
+        if (level != this.level) {
+            sleep(Param.OPERATE_TIME);
+        }
         this.level = level;
     }
 
@@ -107,7 +115,8 @@ class Lift<T> {
         return "lift";
     }
 
-    String state() {
-        return String.format("{%8s:%6s}", this, item);
+    String state(int level) {
+        return (this.level != level) ? ""
+                : String.format("{%8s:%6s}", this, item);
     }
 }

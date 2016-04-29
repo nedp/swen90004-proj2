@@ -36,7 +36,6 @@ class LiftResource<T> implements Resource<T> {
         } else {
             Logger.logEvent("%s enters %s to go down", item, this);
         }
-        sleep(Param.OPERATE_TIME);
         lift.put(putLevel, getLevel, item);
     }
 

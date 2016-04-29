@@ -85,15 +85,23 @@ class Main {
             }
 
             // Draw the state.
+            // Draw the upper level.
+            Logger.logState("%18s", lift.state(LEVELS-1));
             Logger.logState(vehicles.get(1).state());
             for (int i = 0; i < sections.size(); i += 1) {
                 Logger.logState(sections.get(i).state());
                 Logger.logState(vehicles.get(i + 2).state());
             }
-            Logger.logState("\n%s%s%s%s%s\n",
-                    entrance.state(), vehicles.get(0).state(),
-                    lift.state(),
-                    vehicles.get(vehicles.size()-1).state(), exit.state());
+            Logger.logState("%18s", lift.state(LEVELS-1));
+            // Draw the lower level.
+            Logger.logState("\n%18s %s %s %74s %s %s %18s\n",
+                    lift.state(0),
+                    vehicles.get(0).state(),
+                    entrance.state(),
+                    "",
+                    exit.state(),
+                    vehicles.get(vehicles.size()-1).state(),
+                    lift.state(0));
 
             // Check that all vehicles are alive after drawing the state.
             for (final Vehicle vehicle : vehicles) {
