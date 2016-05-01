@@ -8,14 +8,14 @@ import java.util.Objects;
 class Logger {
 
     private enum LogType {
-        EVENT, STATE, BOTH;
+        EVENTS, STATE, BOTH;
     }
 
-    private static LogType LOG_TYPE = LogType.STATE;
+    private static LogType LOG_TYPE = LogType.EVENTS;
 
     static void logEvent(String format, Object... arguments) {
         switch (LOG_TYPE) {
-            case EVENT:
+            case EVENTS:
             case BOTH:
                 System.out.printf(format + "\n", arguments);
                 break;

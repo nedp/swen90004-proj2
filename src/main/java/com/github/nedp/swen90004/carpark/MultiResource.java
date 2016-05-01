@@ -119,6 +119,11 @@ class MultiResource<T> {
 
     String state(int index) {
         return (this.index != index) ? ""
-                : String.format("{%8s:%6s}", name, item);
+                : String.format("{%8s:%6s}", this, item);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

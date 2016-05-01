@@ -21,11 +21,11 @@ class Main {
         final MultiResource<Car> lift = new MultiResource<>(LEVELS, "lift");
 
         // Create a list of car park spaces
-        final List<ResourceImpl<Car>> sections = new ArrayList<>(2);
+        final List<Section> sections = new ArrayList<>(2);
 
         // Generate the individual sections
         for (Integer i = 0; i < Param.SECTIONS; i += 1) {
-            sections.add(new ResourceImpl<>(i));
+            sections.add(new Section(i));
         }
 
         // Generate the producer, the consumer and the operator
@@ -83,22 +83,8 @@ class Main {
             }
 
             // Draw the state.
-            // Draw the upper level.
-            Logger.logState("%18s", lift.state(LEVELS-1));
-            Logger.logState(vehicles.get(1).state());
-            for (int i = 0; i < sections.size(); i += 1) {
-                Logger.logState(sections.get(i).state());
-                Logger.logState(vehicles.get(i + 2).state());
-            }
-            Logger.logState("%18s", lift.state(LEVELS-1));
-            // Draw the lower level.
-            Logger.logState("\n%18s %s %s %73s {exit} <--- %s %18s\n",
-                    lift.state(0),
-                    vehicles.get(0).state(),
-                    entrance.state(),
-                    "",
-                    vehicles.get(vehicles.size()-1).state(),
-                    lift.state(0));
+            drawUpperLevel(lift, vehicles, sections);
+            drawLowerLevel(lift, vehicles, entrance);
 
             // Check that all vehicles are alive after drawing the state.
             for (final DelayedForwarder vehicle : vehicles) {
@@ -116,4 +102,29 @@ class Main {
         System.out.println("Main terminates, all threads terminated");
         System.exit(0);
     }
+
+    private static void drawUpperLevel(MultiResource<Car> lift,
+                                       List<DelayedForwarder<Car>> vehicles,
+                                       List<Section> sections) {
+        Logger.logState("%18s", lift.state(LEVELS-1));
+        Logger.logState(vehicles.get(1).state());
+        for (int i = 0; i < sections.size(); i += 1) {
+            Logger.logState(sections.get(i).state());
+            Logger.logState(vehicles.get(i + 2).state());
+        }
+        Logger.logState("%18s", lift.state(LEVELS-1));
+    }
+
+    private static void drawLowerLevel(MultiResource<Car> lift,
+                                       List<DelayedForwarder<Car>> vehicles,
+                                       Entrance entrance) {
+        Logger.logState("\n%18s %s %s %73s {exit} <--- %s %18s\n",
+                lift.state(0),
+                vehicles.get(0).state(),
+                entrance.state(),
+                "",
+                vehicles.get(vehicles.size()-1).state(),
+                lift.state(0));
+    }
+
 }

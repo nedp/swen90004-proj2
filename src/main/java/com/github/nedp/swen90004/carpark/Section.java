@@ -3,17 +3,17 @@ package com.github.nedp.swen90004.carpark;
 /**
  * Created by nedp on 27/04/16.
  */
-class ResourceImpl<T> implements Resource<T> {
+class Section implements Resource<Car> {
 
     private final int id;
     private final Channel<Void> empty = new Channel<>();
-    private final Channel<T> full = new Channel<>();
+    private final Channel<Car> full = new Channel<>();
     private final String getMessage;
     private final String putMessage;
 
-    private T item = null;
+    private Car item = null;
 
-    private ResourceImpl(int id, String getMessage, String putMessage) {
+    private Section(int id, String getMessage, String putMessage) {
         this.id = id;
         this.getMessage = getMessage;
         this.putMessage = putMessage;
@@ -24,7 +24,7 @@ class ResourceImpl<T> implements Resource<T> {
         }
     }
 
-    ResourceImpl(int id) {
+    Section(int id) {
         this(id, String.format("leaves section %d", id),
                 String.format("enters section %d", id));
     }
@@ -36,8 +36,8 @@ class ResourceImpl<T> implements Resource<T> {
     }
 
     @Override
-    public T getNow() {
-        final T item = this.item;
+    public Car getNow() {
+        final Car item = this.item;
         this.item = null;
         Logger.logEvent("%s %s", item, getMessage);
         return item;
@@ -49,7 +49,7 @@ class ResourceImpl<T> implements Resource<T> {
     }
 
     @Override
-    public void put(T item) throws InterruptedException {
+    public void put(Car item) throws InterruptedException {
         full.put(item);
         this.item = item;
         Logger.logEvent("%s %s", item, putMessage);
