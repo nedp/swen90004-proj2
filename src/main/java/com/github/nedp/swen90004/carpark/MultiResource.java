@@ -13,7 +13,7 @@ class MultiResource<T> {
 
     private final int nResources;
     private final String name;
-    private int level = 0;
+    private int index = 0;
 
     private final List<NullChannel> empty;
 
@@ -51,69 +51,74 @@ class MultiResource<T> {
         return Collections.unmodifiableList(channels);
     }
 
-    void putEmpty(int level) throws InterruptedException {
-        setLevel(level);
-        empty.get(level).put();
+    void putEmpty(int index) throws InterruptedException {
+        setIndex(index);
+        empty.get(index).put();
     }
 
     void put(int source, int destination, T item) throws InterruptedException {
-        assert(level == source);
+        assert(index == source);
         this.item = item;
         full.get(destination).put(item);
     }
 
     Integer nextReservation() throws InterruptedException {
-        final boolean isEmpty = empty.get(level).getNow();
+        final boolean isEmpty = empty.get(index).getNow();
         if (!isEmpty) {
             return null;
         }
 
-        if (!reservations[level]) {
+        if (!reservations[index]) {
             for (int i = 0; i < nResources; i += 1) {
                 if (reservations[i]) {
                     return i;
                 }
             }
         }
-        empty.get(level).put();
+        empty.get(index).put();
         return null;
     }
 
-    void getEmpty(int level) throws InterruptedException {
-        reserve(level);
-        empty.get(level).get();
-        release(level);
+    void getEmpty(int index) throws InterruptedException {
+        reserve(index);
+        empty.get(index).get();
+        release(index);
     }
 
-    T get(int level) throws InterruptedException {
-        final T item = full.get(level).get();
-        setLevel(level);
+    T getNow(int index) {
+        assert(this.index == index);
+        final T item = this.item;
         this.item = null;
         return item;
     }
 
-    private synchronized void reserve(int level) throws InterruptedException {
-        while (reservations[level]) {
-            wait();
-        }
-        reservations[level] = true;
+    void waitForFull(int index) throws InterruptedException {
+        full.get(index).get();
+        setIndex(index);
     }
 
-    private synchronized void release(int level) {
-        assert(reservations[level]);
-        reservations[level] = false;
+    private synchronized void reserve(int index) throws InterruptedException {
+        while (reservations[index]) {
+            wait();
+        }
+        reservations[index] = true;
+    }
+
+    private synchronized void release(int index) {
+        assert(reservations[index]);
+        reservations[index] = false;
         notifyAll();
     }
 
-    private void setLevel(int level) throws InterruptedException {
-        if (level != this.level) {
+    private void setIndex(int index) throws InterruptedException {
+        if (index != this.index) {
             sleep(Param.OPERATE_TIME);
         }
-        this.level = level;
+        this.index = index;
     }
 
-    String state(int level) {
-        return (this.level != level) ? ""
+    String state(int index) {
+        return (this.index != index) ? ""
                 : String.format("{%8s:%6s}", name, item);
     }
 }

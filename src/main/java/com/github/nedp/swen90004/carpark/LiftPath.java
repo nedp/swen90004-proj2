@@ -11,8 +11,6 @@ class LiftPath implements Resource<Car> {
     private final int putIndex;
     private final int getIndex;
 
-    private Car item = null;
-
     LiftPath(MultiResource<Car> multiResource,
              int putIndex, int getIndex) {
         this.multiResource = multiResource;
@@ -27,7 +25,7 @@ class LiftPath implements Resource<Car> {
 
     @Override
     public void waitForFull() throws InterruptedException {
-        item = this.multiResource.get(getIndex);
+        this.multiResource.waitForFull(getIndex);
     }
 
     @Override
@@ -47,8 +45,7 @@ class LiftPath implements Resource<Car> {
 
     @Override
     public Car getNow() {
-        final Car item = this.item;
-        this.item = null;
+        final Car item = this.multiResource.getNow(getIndex);
         Logger.logEvent("%s exits %s", item, this);
         return item;
     }

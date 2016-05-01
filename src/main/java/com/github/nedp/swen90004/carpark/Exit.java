@@ -9,8 +9,6 @@ class Exit<T> implements Consumer<T> {
 
     private final NullChannel ready = new NullChannel();
 
-    private T item;
-
     Exit() {
         try {
             ready.put();
@@ -21,19 +19,9 @@ class Exit<T> implements Consumer<T> {
 
     @Override
     public void getEmpty() throws InterruptedException {
-        ready.get();
         sleep(Param.departureLapse());
-        Logger.logEvent("%s departs", item);
-        this.item = null;
     }
 
     @Override
-    public void put(T item) throws InterruptedException {
-        ready.put();
-        this.item = item;
-    }
-
-    String state() {
-        return String.format("{exit:%6s}", item);
-    }
+    public void put(T item) throws InterruptedException { }
 }
