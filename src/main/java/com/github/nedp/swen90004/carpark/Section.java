@@ -94,9 +94,7 @@ class Section implements Resource<Car> {
         empty.get();
     }
 
-    /**
-     * Returns a human readable representation of this section's state.
-     */
+    /** Returns a human readable representation of this section's state. */
     String state() {
         return String.format("{%4d:%6s}", id, car);
     }
