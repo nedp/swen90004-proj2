@@ -6,8 +6,9 @@ import java.util.Optional;
  * An abstraction to allow simple synchronized message passing
  * between threads without message content.
  *
- * A NullChannel doesn't hold items, but does conceptually hold
- * empty messages.
+ * A NullChannel doesn't hold items, but does conceptually hold empty messages.
+ * This class is required (can't just use something like {@link Channel<null>})
+ * because of limitations in Java's type system.
  *
  * It supports operations for:
  * <ul>
@@ -26,10 +27,18 @@ import java.util.Optional;
  */
 class NullChannel {
 
-    // true if this Channel currently has an item, otherwise false.
+    // true if this Channel currently has a message, otherwise false.
     private boolean isFull = false;
 
-    // The item most recently sent through this channel.
+    /**
+     * Waits until a message is available for retrieval from this Channel,
+     * then retrieves it.
+     *
+     * If the channel is already full, this method shall return immediately.
+     * Otherwise, this method will wait until the channel is full.
+     *
+     * Since the messages of this channel are empty, this returns nothing.
+     */
     synchronized void get() throws InterruptedException {
         while (!isFull) {
             wait();
@@ -38,6 +47,13 @@ class NullChannel {
         notifyAll();
     }
 
+    /**
+     * Sends a message through this Channel when the channel has space for it.
+     *
+     * If the channel is already full, this method shall wait until the
+     * channel is no longer full, then send the message.
+     * Otherwise, this method will immediately send the message.
+     */
     synchronized void put() throws InterruptedException {
         while(isFull) {
             wait();
@@ -46,6 +62,15 @@ class NullChannel {
         notifyAll();
     }
 
+    /**
+     * Attempts to retrieve a message from this Channel without waiting.
+     *
+     * If a message is ready for retrieval, it is retrieved and true is
+     * returned.
+     * Otherwise, false is returned immediately.
+     *
+     * @return true if the channel is ready, otherwise false.
+     */
     synchronized boolean getIfReady() {
         if (isFull) {
             isFull = false;
