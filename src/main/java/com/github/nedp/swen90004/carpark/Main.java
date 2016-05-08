@@ -12,25 +12,27 @@ class Main {
     private static final int LEVELS = 2;
 
     // Generate the lift
-    private final MultiResource<Car> lift = new MultiResource<>(LEVELS, "lift");
+    private final Lift<Car> lift = new Lift<>(LEVELS, "lift");
 
     // Create a list of car park spaces
     private final List<Section> sections = new ArrayList<>(2);
 
-    // Generate the producer, the consumer and the operator
+    // Generate the entrance of the carpark and the lift operator.
     private final Entrance entrance = new Entrance();
-    private final Exit<Car> exit = new Exit<>();
     private final Operator operator = new Operator(lift);
 
-    // Create the entrances and exits to the lift.
-    final Resource<Car> raiser = new LiftPath(lift, 0, LEVELS - 1);
-    final Resource<Car> lowerer = new LiftPath(lift, LEVELS - 1, 0);
-
     // Create a list of towing vehicles
-    final List<Vehicle<Car>> vehicles =
+    private final List<Vehicle<Car>> vehicles =
             new ArrayList<>(Param.SECTIONS + 3);
 
     private Main() {
+        // Create the exit of the carpark.
+        final Exit<Car> exit = new Exit<>();
+
+        // Create the entrances and exits to the lift.
+        final Resource<Car> raiser = new LiftResource(lift, 0, LEVELS - 1);
+        final Resource<Car> lowerer = new LiftResource(lift, LEVELS - 1, 0);
+
         // Generate the individual sections
         for (Integer i = 0; i < Param.SECTIONS; i += 1) {
             sections.add(new Section(i));

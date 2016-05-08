@@ -9,7 +9,7 @@ import static java.lang.Thread.sleep;
 /**
  * Created by nedp on 28/04/16.
  */
-class MultiResource<T> {
+class Lift<T> {
 
     private final int nResources;
     private final String name;
@@ -22,7 +22,7 @@ class MultiResource<T> {
     private final List<Channel<T>> full;
     private final boolean[] reservations;
 
-    MultiResource(int nResources, String name) {
+    Lift(int nResources, String name) {
         this.nResources = nResources;
         this.name = name;
         empty = nullChannels(nResources);
