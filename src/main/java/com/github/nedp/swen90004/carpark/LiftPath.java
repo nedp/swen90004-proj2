@@ -19,12 +19,12 @@ class LiftPath implements Resource<Car> {
     }
 
     @Override
-    public void putEmpty() throws InterruptedException {
+    public void makeAvailable() throws InterruptedException {
         multiResource.putEmpty(getIndex);
     }
 
     @Override
-    public void waitForFull() throws InterruptedException {
+    public void reserveItem() throws InterruptedException {
         this.multiResource.waitForFull(getIndex);
     }
 
@@ -39,7 +39,7 @@ class LiftPath implements Resource<Car> {
     }
 
     @Override
-    public void getEmpty() throws InterruptedException {
+    public void reserveAvailability() throws InterruptedException {
         multiResource.getEmpty(putIndex);
     }
 

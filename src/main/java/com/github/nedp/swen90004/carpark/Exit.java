@@ -5,7 +5,7 @@ import static java.lang.Thread.sleep;
 /**
  * Created by nedp on 28/04/16.
  */
-class Exit<T> implements Consumer<T> {
+class Exit<T> implements ResourceEntry<T> {
 
     private final NullChannel ready = new NullChannel();
 
@@ -18,7 +18,7 @@ class Exit<T> implements Consumer<T> {
     }
 
     @Override
-    public void getEmpty() throws InterruptedException {
+    public void reserveAvailability() throws InterruptedException {
         sleep(Param.departureLapse());
     }
 

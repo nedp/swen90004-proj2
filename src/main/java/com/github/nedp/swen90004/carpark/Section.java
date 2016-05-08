@@ -6,7 +6,7 @@ package com.github.nedp.swen90004.carpark;
 class Section implements Resource<Car> {
 
     private final int id;
-    private final Channel<Void> empty = new Channel<>();
+    private final NullChannel empty = new NullChannel();
     private final Channel<Car> full = new Channel<>();
     private final String getMessage;
     private final String putMessage;
@@ -18,7 +18,7 @@ class Section implements Resource<Car> {
         this.getMessage = getMessage;
         this.putMessage = putMessage;
         try {
-            empty.put(null);
+            empty.put();
         } catch (InterruptedException e) {
             throw new RuntimeException("Unexpected wait!", e);
         }
@@ -30,9 +30,8 @@ class Section implements Resource<Car> {
     }
 
     @Override
-    public void putEmpty() throws InterruptedException {
-        empty.put(null);
-        item = null;
+    public void makeAvailable() throws InterruptedException {
+        empty.put();
     }
 
     @Override
@@ -44,7 +43,7 @@ class Section implements Resource<Car> {
     }
 
     @Override
-    public void waitForFull() throws InterruptedException {
+    public void reserveItem() throws InterruptedException {
         item = this.full.get();
     }
 
@@ -56,7 +55,7 @@ class Section implements Resource<Car> {
     }
 
     @Override
-    public void getEmpty() throws InterruptedException {
+    public void reserveAvailability() throws InterruptedException {
         empty.get();
     }
 

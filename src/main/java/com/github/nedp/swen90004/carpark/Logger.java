@@ -11,7 +11,7 @@ class Logger {
         EVENTS, STATE, BOTH;
     }
 
-    private static LogType LOG_TYPE = LogType.EVENTS;
+    private static LogType LOG_TYPE = LogType.STATE;
 
     static void logEvent(String format, Object... arguments) {
         switch (LOG_TYPE) {

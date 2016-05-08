@@ -63,7 +63,7 @@ class MultiResource<T> {
     }
 
     Integer nextReservation() throws InterruptedException {
-        final boolean isEmpty = empty.get(index).getNow();
+        final boolean isEmpty = empty.get(index).getIfReady();
         if (!isEmpty) {
             return null;
         }

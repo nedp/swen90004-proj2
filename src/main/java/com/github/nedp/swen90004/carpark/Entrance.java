@@ -1,13 +1,11 @@
 package com.github.nedp.swen90004.carpark;
 
-import java.util.Optional;
-
 import static java.lang.Thread.sleep;
 
 /**
  * Created by nedp on 28/04/16.
  */
-class Entrance implements Producer<Car> {
+class Entrance implements ResourceExit<Car> {
 
     private final NullChannel ready = new NullChannel();
     private Car car;
@@ -22,7 +20,7 @@ class Entrance implements Producer<Car> {
     }
 
     @Override
-    public void putEmpty() throws InterruptedException {
+    public void makeAvailable() throws InterruptedException {
         sleep(Param.arrivalLapse());
         getNewCar();
         ready.put();
@@ -36,7 +34,7 @@ class Entrance implements Producer<Car> {
     }
 
     @Override
-    public void waitForFull() throws InterruptedException {
+    public void reserveItem() throws InterruptedException {
         ready.get();
     }
 

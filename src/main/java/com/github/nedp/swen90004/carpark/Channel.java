@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /**
  * An abstraction to allow simple synchronized message passing
- * between threads.
+ * between threads with message content.
  *
  * A Channel may hold zero or one items at any given time.
  *

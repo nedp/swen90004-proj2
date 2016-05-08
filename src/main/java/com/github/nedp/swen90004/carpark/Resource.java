@@ -1,6 +1,6 @@
 package com.github.nedp.swen90004.carpark;
 
 /**
- * Created by nedp on 28/04/16.
+ * An interface which supports operations on both ends of a resource.
  */
-interface Resource<T> extends Consumer<T>, Producer<T> {}
+interface Resource<T> extends ResourceEntry<T>, ResourceExit<T> {}
