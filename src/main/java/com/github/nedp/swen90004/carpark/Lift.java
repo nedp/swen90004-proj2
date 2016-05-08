@@ -51,7 +51,7 @@ class Lift<T> {
         return Collections.unmodifiableList(channels);
     }
 
-    void putEmpty(int index) throws InterruptedException {
+    void makeAvailable(int index) throws InterruptedException {
         setIndex(index);
         empty.get(index).put();
     }

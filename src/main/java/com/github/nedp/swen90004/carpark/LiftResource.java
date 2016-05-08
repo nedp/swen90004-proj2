@@ -38,7 +38,7 @@ class LiftResource implements Resource<Car> {
 
     @Override
     public void makeAvailable() throws InterruptedException {
-        lift.putEmpty(getIndex);
+        lift.makeAvailable(getIndex);
     }
 
     @Override
