@@ -8,7 +8,7 @@ package com.github.nedp.swen90004.carpark;
  * with no extra restrictions other than those specifie for the Resource
  * interface (and its parents).
  *
- * See the implemented interface for explanations of each overidden method.
+ * See the implemented interface for documentation on overridden methods.
  */
 class Section implements Resource<Car> {
 

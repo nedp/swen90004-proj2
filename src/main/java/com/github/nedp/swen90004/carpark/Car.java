@@ -1,45 +1,33 @@
 package com.github.nedp.swen90004.carpark;
 
-import javax.annotation.Nonnull;
-
 /**
- * A class whose instances are Car, each with its unique Id.
+ * A class whose instances are cars, each with its unique ID.
+ *
+ * See implemented interfaces and superclasses for documentation on overridden
+ * methods.
  */
 class Car {
 
-    // The Id of this car
+    // The ID of this car.
     private final int id;
 
-    // The next ID to be allocated
-    private static int currentId = 0;
+    // The ID to be allocated to the next car.
+    private static int nextId = 0;
 
-    // Create a new car with a given Id
+    // Create a new car with a given ID.
     private Car(int id) {
         this.id = id;
     }
 
-    // Get a new car instance with a unique Id
+    // Get a new car instance with a unique ID.
     static Car getNew() {
-        currentId += 1;
-        return new Car(currentId);
+        final Car car = new Car(nextId);
+        nextId += 1;
+        return car;
     }
 
-    // Produce the Id of this car
-    private int getId() {
-        return id;
-    }
-
-    // Produce an identifying string for the car
     @Override
     public String toString() {
         return String.format("[%d]", id);
-    }
-
-    void arrive() {
-        System.out.printf("%s arrives\n", this);
-    }
-
-    void depart() {
-        System.out.printf("%s departs\n", this);
     }
 }
