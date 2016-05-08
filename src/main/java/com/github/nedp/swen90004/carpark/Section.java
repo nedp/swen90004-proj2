@@ -1,22 +1,51 @@
 package com.github.nedp.swen90004.carpark;
 
 /**
- * Created by nedp on 27/04/16.
+ * An implementation of the Resource interface for Car cars,
+ * with support for observing the state of the section as a string.
+ *
+ * This implementation allows Cars to be placed into and retrived from it,
+ * with no extra restrictions other than those specifie for the Resource
+ * interface (and its parents).
+ *
+ * See the implemented interface for explanations of each overidden method.
  */
 class Section implements Resource<Car> {
 
+    // Should uniquely identify the section, assisting with state and event
+    // messages.
     private final int id;
+
+    // A channel for (internal) signaling of the availability of the section
+    // for receiving new cars.
     private final NullChannel empty = new NullChannel();
+
+    // A channel for synchronising the getting and putting of Cars.
     private final Channel<Car> full = new Channel<>();
+
+    // A message characterising the act of getting something from the resource.
     private final String getMessage;
+
+    // A message characterising the act of putting something into the resource.
     private final String putMessage;
 
-    private Car item = null;
+    // Used for tracking the 'state' of the section; since channels don't allow
+    // observation of their contents without retrieving it, this variable is
+    // required to allow the printing of state.
+    // Cars are stored in this variable when they are put into the section,
+    // and removed from this variable when they are gotten from the section.
+    private Car car = null;
 
+    // Constructs the section with the specified id and messages for
+    // getting/putting cars.
     private Section(int id, String getMessage, String putMessage) {
         this.id = id;
         this.getMessage = getMessage;
         this.putMessage = putMessage;
+
+        // Signals internally that the section is available.
+        // It should be impossible for this call to wait, because it is
+        // a fresh channel.
         try {
             empty.put();
         } catch (InterruptedException e) {
@@ -24,6 +53,12 @@ class Section implements Resource<Car> {
         }
     }
 
+    /**
+     * Constructs the section with default 'leaves/enters section X' messages,
+     * where X is the specified id.
+     *
+     * @param id the id of the section.
+     */
     Section(int id) {
         this(id, String.format("leaves section %d", id),
                 String.format("enters section %d", id));
@@ -36,22 +71,22 @@ class Section implements Resource<Car> {
 
     @Override
     public Car getNow() {
-        final Car item = this.item;
-        this.item = null;
-        Logger.logEvent("%s %s", item, getMessage);
-        return item;
+        final Car car = this.car;
+        this.car = null;
+        Logger.logEvent("%s %s", car, getMessage);
+        return car;
     }
 
     @Override
     public void reserveItem() throws InterruptedException {
-        item = this.full.get();
+        car = this.full.get();
     }
 
     @Override
-    public void put(Car item) throws InterruptedException {
-        full.put(item);
-        this.item = item;
-        Logger.logEvent("%s %s", item, putMessage);
+    public void put(Car car) throws InterruptedException {
+        full.put(car);
+        this.car = car;
+        Logger.logEvent("%s %s", car, putMessage);
     }
 
     @Override
@@ -59,7 +94,10 @@ class Section implements Resource<Car> {
         empty.get();
     }
 
+    /**
+     * Returns a human readable representation of this section's state.
+     */
     String state() {
-        return String.format("{%4d:%6s}", id, item);
+        return String.format("{%4d:%6s}", id, car);
     }
 }
