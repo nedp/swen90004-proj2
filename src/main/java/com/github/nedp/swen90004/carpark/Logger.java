@@ -1,18 +1,24 @@
 package com.github.nedp.swen90004.carpark;
 
-import java.util.Objects;
-
 /**
- * Created by nedp on 28/04/16.
+ * A class which logs events and state snapshots.
+ *
+ * Responsible for knowing whether to output just the event trace,
+ * just the textual state snapshots, or both.
  */
 class Logger {
 
+    // We can log either the event trace, state snapshots, or both.
     private enum LogType {
         EVENTS, STATE, BOTH;
     }
+    private static LogType LOG_TYPE = LogType.EVENTS;
 
-    private static LogType LOG_TYPE = LogType.STATE;
-
+    /**
+     * Logs the specified event text, if event text should be logged.
+     *
+     * Uses string formatting of the same form as {@code System.out.printf}.
+     */
     static void logEvent(String format, Object... arguments) {
         switch (LOG_TYPE) {
             case EVENTS:
@@ -25,6 +31,11 @@ class Logger {
         }
     }
 
+    /**
+     * Logs the specified state text, if state snapshots should be logged.
+     *
+     * Uses string formatting of the same form as {@code System.out.printf}.
+     */
     static void logState(String format, Object... arguments) {
         switch (LOG_TYPE) {
             case STATE:
@@ -36,5 +47,4 @@ class Logger {
                 break;
         }
     }
-
 }
