@@ -72,8 +72,8 @@ class Vehicle<T> extends Thread {
         // * Release ownership of the source by telling it that it is available.
         while (true) {
             try {
-                source.reserveItem();
-                destination.reserveAvailability();
+                source.acquireWhenFull();
+                destination.acquireWhenEmpty();
                 item = source.getNow();
                 sleep(Param.TOWING_TIME);
                 destination.put(item);

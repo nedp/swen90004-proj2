@@ -8,7 +8,7 @@ import static java.lang.Thread.sleep;
  *
  * Cars may enter this Exit like a normal resource, but never exit it.
  * Instead, cars which enter this exit are immediately destroyed.
- * When reserving the availability of this exit, a random amount of time is
+ * When taking ownership of this exit, a random amount of time is
  * waited, determined by Param.departureLapse().
  *
  * This Exit has no state, since Cars are considered to have left the car park
@@ -19,7 +19,7 @@ import static java.lang.Thread.sleep;
 class Exit<T> implements ResourceEntry<T> {
 
     @Override
-    public void reserveAvailability() throws InterruptedException {
+    public void acquireWhenEmpty() throws InterruptedException {
         sleep(Param.departureLapse());
     }
 

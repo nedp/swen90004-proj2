@@ -5,8 +5,8 @@ package com.github.nedp.swen90004.carpark;
  * with support for observing the state of the section as a string.
  *
  * This implementation allows Cars to be placed into and retrived from it,
- * with no extra restrictions other than those specifie for the Resource
- * interface (and its parents).
+ * with no extra restrictions other than those specified for the Resource
+ * interface (and its super-interfaces).
  *
  * See the implemented interface for documentation on overridden methods.
  */
@@ -18,7 +18,7 @@ class Section implements Resource<Car> {
 
     // A channel for (internal) signaling of the availability of the section
     // for receiving new cars.
-    private final NullChannel empty = new NullChannel();
+    private final Channel<Object> empty = new Channel<>();
 
     // A channel for synchronising the getting and putting of Cars.
     private final Channel<Car> full = new Channel<>();
@@ -47,7 +47,7 @@ class Section implements Resource<Car> {
         // It should be impossible for this call to wait, because it is
         // a fresh channel.
         try {
-            empty.put();
+            empty.put(new Object());
         } catch (InterruptedException e) {
             throw new RuntimeException("Unexpected wait!", e);
         }
@@ -66,7 +66,7 @@ class Section implements Resource<Car> {
 
     @Override
     public void makeAvailable() throws InterruptedException {
-        empty.put();
+        empty.put(new Object());
     }
 
     @Override
@@ -78,7 +78,7 @@ class Section implements Resource<Car> {
     }
 
     @Override
-    public void reserveItem() throws InterruptedException {
+    public void acquireWhenFull() throws InterruptedException {
         car = this.full.get();
     }
 
@@ -90,7 +90,7 @@ class Section implements Resource<Car> {
     }
 
     @Override
-    public void reserveAvailability() throws InterruptedException {
+    public void acquireWhenEmpty() throws InterruptedException {
         empty.get();
     }
 

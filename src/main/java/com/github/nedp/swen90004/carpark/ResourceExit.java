@@ -3,39 +3,48 @@ package com.github.nedp.swen90004.carpark;
 /**
  * Represents an exit point for a resource.
  *
- * Supports operations for reserving and getting an item from the resource,
- * as well as making it available for another item.
+ * Supports operations for taking ownership of the resource and getting an item
+ * from it, as well as relinquishing ownership.
  */
 interface ResourceExit<T> {
+
     /**
      * Makes the resource available for another item.
      *
-     * If the resource is already available, waits until it is unavailable.
+     * If the resource is already available, the implementation should wait
+     * until it is unavailable (owned by something).
+     * If ownership is respected, then this method should never wait.
      *
-     * The caller is must ensure that the resource is only made available if it
-     * is empty.
+     * The caller is must ensure that they own the resource and that it is
+     * empty.
+     *
+     * @throws InterruptedException if the thread is interrupted while waiting
+     * for the resource to become unavailable.
      */
     void makeAvailable() throws InterruptedException;
 
     /**
-     * Retrieves the item from the resource, assuming it is reserved.
+     * Retrieves the item from the resource, assuming it is owned by the caller.
      *
-     * The caller must guarantee that the item has been reserved and not already
-     * retrieved.
+     * The caller must guarantee that they have ownership of the resrouce
+     * and that they have not already retrieved the item.
      *
-     * @return the reserved item.
+     * The resource is made empty by this method, but ownership is not
+     * relinquished.
+     *
+     * @return the item.
      */
     T getNow();
 
     /**
-     * Waits until an item is present in the resource, then reserves it
-     * without retrieving it.
+     * Waits until an item is present in the resource, then takes ownership
+     * of the resource without retrieving it.
      *
-     * The implementation must guarantee that only one caller may reserve
-     * its item at a time.
+     * The implementation must guarantee that only one caller may take
+     * ownership at a time.
      *
      * @throws InterruptedException if the thread is interrupted while waiting
      * for an item to enter the resource.
      */
-    void reserveItem() throws InterruptedException;
+    void acquireWhenFull() throws InterruptedException;
 }

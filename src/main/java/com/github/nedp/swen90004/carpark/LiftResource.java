@@ -1,7 +1,9 @@
 package com.github.nedp.swen90004.carpark;
 
 /**
- * A resource backed by a lift, representing a single path through the lift.
+ * An adapter for the Lift class satisfying the Resource interface, allowing
+ * the lift to be used by regular vehicles, so no special vehicle classes are
+ * needed.
  *
  * In the assignment specification there are always two paths through the lift,
  * top to bottom and bottom to top.
@@ -21,6 +23,13 @@ class LiftResource implements Resource<Car> {
     // The level which the lift must be at to get a car from this liftPath.
     private final int getIndex;
 
+    // A human readable description of the reason things enter the lift
+    // through this object, based on direction of travel.
+    private final String direction;
+    private static final String UP = "to go up";
+    private static final String DOWN = "to go down";
+    private static final String SAME = "to pass through";
+
     /**
      * Constructs a new LiftResource without performing any actions.
      *
@@ -34,6 +43,13 @@ class LiftResource implements Resource<Car> {
         this.lift = lift;
         this.putIndex = putIndex;
         this.getIndex = getIndex;
+        if (putIndex < getIndex) {
+            direction = UP;
+        } else if (putIndex > getIndex) {
+            direction = DOWN;
+        } else {
+            direction = SAME;
+        }
     }
 
     @Override
@@ -42,30 +58,24 @@ class LiftResource implements Resource<Car> {
     }
 
     @Override
-    public void reserveItem() throws InterruptedException {
-        this.lift.waitForFull(getIndex);
+    public void acquireWhenFull() throws InterruptedException {
+        this.lift.acquireWhenFull(getIndex);
     }
 
     @Override
     public void put(Car item) throws InterruptedException {
-        if (putIndex < getIndex) {
-            Logger.logEvent("%s enters %s to go up", item, lift);
-        } else if (putIndex > getIndex) {
-            Logger.logEvent("%s enters %s to go down", item, lift);
-        } else {
-            Logger.logEvent("%s enters %s to pass through", item, lift);
-        }
-        lift.put(putIndex, getIndex, item);
+        Logger.logEvent("%s enters %s %s", item, lift, direction);
+        lift.put(getIndex, item);
     }
 
     @Override
-    public void reserveAvailability() throws InterruptedException {
-        lift.getEmpty(putIndex);
+    public void acquireWhenEmpty() throws InterruptedException {
+        lift.acquireWhenEmpty(putIndex);
     }
 
     @Override
     public Car getNow() {
-        final Car item = this.lift.getNow(getIndex);
+        final Car item = this.lift.getNow();
         Logger.logEvent("%s exits %s", item, this);
         return item;
     }

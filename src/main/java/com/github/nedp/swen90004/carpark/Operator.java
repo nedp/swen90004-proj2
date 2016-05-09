@@ -1,5 +1,7 @@
 package com.github.nedp.swen90004.carpark;
 
+import java.util.Optional;
+
 /**
  * A thread which simulates the Operator of the lift.
  *
@@ -16,13 +18,13 @@ package com.github.nedp.swen90004.carpark;
  *
  * See the implemented interface for documentation on overridden methods.
  */
-class Operator extends Thread {
+class Operator<T> extends Thread {
 
     // The lift which this Operator operates.
-    private final Lift lift;
+    private final Lift<T> lift;
 
     /** Constructs a new operator for the specified lift. */
-    Operator(Lift lift) {
+    Operator(Lift<T> lift) {
         this.lift = lift;
     }
 
@@ -40,12 +42,15 @@ class Operator extends Thread {
         }
     }
 
+    // Checks if the lift needs to be operated, and operates it if so.
     private void operateIfNeeded() throws InterruptedException {
-        final Integer destination = lift.nextReservation();
-        if (null == destination) {
-            return;
-        }
+        // Wait for the lift to be empty, then either take ownership of
+        // it if it is reserved and needs to be operated,
+        // or return immediately otherwise.
+        final Optional<Integer> reservation = lift.nextReservation();
+        if (!reservation.isPresent()) return;
 
+        final Integer destination = reservation.get();
         // Report that the lift is moving using the Logger.
         // These messages should be changed if more levels are added.
         if (destination == 0) {

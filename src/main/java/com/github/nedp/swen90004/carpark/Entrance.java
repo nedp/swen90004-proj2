@@ -47,7 +47,7 @@ class Entrance implements ResourceExit<Car> {
     }
 
     @Override
-    public void reserveItem() throws InterruptedException {
+    public void acquireWhenFull() throws InterruptedException {
         ready.get();
     }
 
