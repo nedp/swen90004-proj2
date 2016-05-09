@@ -1,0 +1,29 @@
+# Multilevel Carpark Reflection
+
+Part of assignment 2a for The University of Melbourne subject
+SWEN90004 Modelling Complex Software Systems in semester 1
+2016.
+
+*view as a markdown file for formatting*
+
+**Author:** Ned Pummeroy (nedp, 586530)
+
+## Success of the solution
+
+The solution was a success.
+
+### Safety and Liveliness
+
+## Experiments
+
+### Deadlocks
+
+### Varying the timing parameters
+
+## Extensions
+
+### Exponential distribution
+
+### Textual snapshots
+
+### Go implementation

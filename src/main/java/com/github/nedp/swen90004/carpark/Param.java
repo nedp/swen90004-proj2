@@ -7,6 +7,9 @@ import java.util.Random;
  */
 class Param {
 
+    // Use a single static random instance to avoid unnecessary work.
+    private final static Random random = new Random();
+
     // The number of car park spaces
     final static int SECTIONS = 6;
 
@@ -29,22 +32,43 @@ class Param {
     private final static int MAX_OPERATE_INTERVAL = 2400;
 
     /**
-     * For simplicity, we assume uniformly distributed time lapses.
-     * An exponential distribution might be a fairer assumption.
+     * Randomly selects a lapse on a roughly exponential distribution.
+     * The output is limited to a maximum of MAX_ARRIVE_INTERVAL.
      */
     static int arrivalLapse() {
-        Random random = new Random();
-        return random.nextInt(MAX_ARRIVE_INTERVAL);
+        return cappedExponentialDistribution(MAX_ARRIVE_INTERVAL);
     }
 
+    /**
+     * Randomly selects a lapse on a roughly exponential distribution.
+     * The output is limited to a maximum of MAX_DEPART_INTERVAL.
+     */
     static int departureLapse() {
-        Random random = new Random();
-        return random.nextInt(MAX_DEPART_INTERVAL);
+        return cappedExponentialDistribution(MAX_DEPART_INTERVAL);
     }
 
+    /**
+     * Randomly selects a lapse on a roughly exponential distribution.
+     * The output is limited to a maximum of MAX_OPERATE_INTERVAL.
+     */
     static int operateLapse() {
-        Random random = new Random();
-        return random.nextInt(MAX_OPERATE_INTERVAL);
+        return cappedExponentialDistribution(MAX_OPERATE_INTERVAL);
+    }
+
+    // Returns a random number from a roughly exponential distribution
+    // with the specified maximum, with an expected value of half the max.
+    private static int cappedExponentialDistribution(int max) {
+        // For an exponential distribution, the expected value is 1 / lambda.
+        // We want an expected value of half the maximum to match the normal
+        // distribution, so (1 / lambda = max / 2) => (lambda = 2 / max).
+        final double lambda = 2.0 / (double)max;
+
+        // Choose a preliminary result from the exponential distribution.
+        final double rng = random.nextDouble();
+        final double result = Math.log(1.0 - rng) / -lambda;
+
+        // Cap the result to the maximum.
+        return (int) result % max;
     }
 }
 
