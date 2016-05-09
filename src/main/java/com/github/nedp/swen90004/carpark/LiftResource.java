@@ -76,7 +76,7 @@ class LiftResource implements Resource<Car> {
     @Override
     public Car getNow() {
         final Car item = this.lift.getNow();
-        Logger.logEvent("%s exits %s", item, this);
+        Logger.logEvent("%s exits %s", item, lift);
         return item;
     }
 }
