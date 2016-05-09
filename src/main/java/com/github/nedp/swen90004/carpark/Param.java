@@ -32,7 +32,7 @@ class Param {
     private final static int MAX_OPERATE_INTERVAL = 2400;
 
     /**
-     * Randomly selects a lapse on a roughly exponential distribution.
+     * Randomly selects a lapse from a roughly exponential distribution.
      * The output is limited to a maximum of MAX_ARRIVE_INTERVAL.
      */
     static int arrivalLapse() {
@@ -40,7 +40,7 @@ class Param {
     }
 
     /**
-     * Randomly selects a lapse on a roughly exponential distribution.
+     * Randomly selects a lapse from a roughly exponential distribution.
      * The output is limited to a maximum of MAX_DEPART_INTERVAL.
      */
     static int departureLapse() {
@@ -48,7 +48,7 @@ class Param {
     }
 
     /**
-     * Randomly selects a lapse on a roughly exponential distribution.
+     * Randomly selects a lapse from a roughly exponential distribution.
      * The output is limited to a maximum of MAX_OPERATE_INTERVAL.
      */
     static int operateLapse() {
@@ -65,10 +65,10 @@ class Param {
 
         // Choose a preliminary result from the exponential distribution.
         final double rng = random.nextDouble();
-        final double result = Math.log(1.0 - rng) / -lambda;
+        final int result = (int) Math.floor((Math.log(1.0 - rng) / -lambda));
 
         // Cap the result to the maximum.
-        return (int) result % max;
+        return result > max ? max : result;
     }
 }
 

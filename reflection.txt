@@ -4,26 +4,96 @@ Part of assignment 2a for The University of Melbourne subject
 SWEN90004 Modelling Complex Software Systems in semester 1
 2016.
 
-*view as a markdown file for formatting*
-
 **Author:** Ned Pummeroy (nedp, 586530)
+**Main text word count:** 557
 
-## Success of the solution
+## Design
 
-The solution was a success.
+### Resources
 
-### Safety and Liveliness
+Sections, the lift, and the entrance/exit were treated as resources
+with uniform interfaces for getting and putting cars.
+The resources used an immitation of Go's channels for synchronisation.
 
-## Experiments
+Sections have one entry and one exit.
 
-### Deadlocks
+The car park entrance has one exit but no entry, since it generates its own
+cars.
 
-### Varying the timing parameters
+The car park exit has one entry but no exit since cars are never taken from
+it.
+
+The lift has many entrances and exits, one of each on all levels.
+There is a delay of `OPERATE_TIME` between a car entering the lift on one
+level and exiting it on another.
+
+### Vehicles
+
+Vehicles run in a loop moving cars from their source to their destination.
+They:
+
+1. Take ownership of their source when it's full
+2. Take ownership of their destination when it's empty
+3. Remove the car from their source
+4. Wait for the towing delay
+5. Place the car in their destination, giving up ownership
+6. Tell their source that they may be considered empty, giving up ownership
+
+Resources ensure that only one vehicle may own them at a time.
+
+### Safety
+
+Since vehicles only access resources which they own, and only one vehicle
+may own each resource at a time, the system is obviously safe.
+
+## Experiments and Liveliness
+
+By experimenting, I found that it was either impossible or extremely unlikely
+for the entire upper level to be full, regardless of the number of sections.
+
+The towing time is constant, and cars entering the lift at the carpark
+entrance must wait for the towing time.
+This gives any backed up cars at the end of the upper level time to move
+into position to immediately enter the lift when it is raised and emptied.
+This prevents the upper level from becoming full when there are cars backed up.
+
+The lift can still go down without having a car in it if there are no cars
+backed up.
+In this case, the upper level is obviously not full.
+
+If the upper level is not full it has an empty space, which will move
+towards the first section as cars move forwards.
+Any car in a raised lift will therefore eventually have a space to move into,
+which means any car in the last section will eventually have an empty lift
+via which it can leave.
+
+These observations held regardless of the timing parameters.
 
 ## Extensions
 
 ### Exponential distribution
 
+Implementing an exponential distribution was quite easy because the random
+number generation was isolated from the rest of the logic.
+Since exponential distributions allow an infinitely large output with low
+probability, I capped the the result at the specified maximum intervals.
+
 ### Textual snapshots
 
+Textual snapshots were difficult to add to my implementation because channels
+can't have their contents observed without removing said contents.
+So, when a car is put in a resource, I had the resource remember it;
+when a car is removed, I had the resource forgot it.
+
+This allowed the main thread to regularly poll each resource for its
+contents and draw the state.
+
 ### Go implementation
+
+I didn't do a second implementation in Go, but I based my Java implementation
+off of what I would have done in Go.
+
+The main difficulty I had which I would not have had with Go was the fact
+that Java has no `select` construct.
+This complicated the logic, especially for the Operator, which needs to pay
+attention to whether the lift is reserved on any of multiple levels at once.
