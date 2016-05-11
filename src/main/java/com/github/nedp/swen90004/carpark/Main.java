@@ -19,7 +19,7 @@ class Main {
 
     // Generate the entrance of the carpark and the lift operator.
     private final Entrance entrance = new Entrance();
-    private final Operator operator = new Operator(lift);
+    private final Operator operator = new Operator<>(lift);
 
     // Create a list of towing vehicles
     private final List<Vehicle<Car>> vehicles =
