@@ -1,0 +1,108 @@
+const N = 2
+
+// ==== Timing
+//
+// Since timing is generally unreliable, we allow any interleaving of
+// actions which only have time-based restrictions on when they occur.
+//
+// We do this by using nondeterminism; in situations where
+// A must do x, and B must do y, but without synchronisation,
+// we allow A to either do nothing (staying in the same state),
+// or to do x.  Likewise for B and y.
+
+// ==== Actions
+//
+// There are two actions which are relevant to the safety
+// and liveness properties of the simulation:
+// * empty
+// * full
+//
+// Each of those actions can apply to any particular resource.
+// Therefore we must prefix each action with all of the resources.
+//
+// We don't care about particular cars; as far as liveness and safety
+// concerned all cars are exactly the same.
+
+// Generally resources start empty and must have something put in them.
+// RESOURCE = (empty -> put -> get -> RESOURCE).
+
+// ==== Resources
+//
+// Loosely speaking there are three types of resources:
+// * the entry,
+// * the consumer,
+// * the sections, and
+// * the lift
+//
+// The lift is additionally wrapped in multiple extra resources,
+// representing the fact that cars can go both up and down in the lift.
+// Only one of these wrapping resources is available at a time,
+//
+// So, we have N+4 resources, where N is the number of sections.
+// N sections + 1 consumer + 1 entry + 2 lift resources.
+// representing the fact that the lift may be in only one place at a time.
+//
+// So, we have N+4 resources, where N is the number of sections.
+// N sections + 1 consumer + 1 entry + 2 lift resources.
+
+// ||ENTRANCE = [1].source::RESOURCE.
+
+// ||LIFT_UP = {[1].destination, [2].source}::RESOURCE.
+
+// The regular sections are destinations for vehicles 2..N+1
+// and sources for vehicles 3..N+2.
+// ||SECTIONS = (forall[i:1..N] (
+    //{[i+1].destination, [i+2].source}::RESOURCE)).
+
+// ||LIFT_DOWN = {[N+2].destination, [N+3].source}::RESOURCE.
+
+// ||EXIT = {[N+3].destination}::RESOURCE.
+
+// ||RESOURCES = (ENTRANCE || LIFT_UP || SECTIONS || LIFT_DOWN || EXIT).
+
+// ==== Processes
+//
+// A vehicle:
+// 1. Waits until the source is full and locks it
+// 2. Waits until the destination is empty and locks it
+// 3. Either:
+//   * Makes the destination full and tells the source that it
+//     is empty, releasing both, or
+//   * Does nothing, repeating step 3.
+// 4. Goes back to step 1.
+//
+// There is a vehicle for the entrance to the lift. (1)
+// There is a vehicle for the lift to section 1. (2)
+// There are N sections, serviced by N-1 vehicles operating only between
+// sections. (3 .. N+1)
+// There is a vehicle for section N to the lift. (N+2)
+// There is a vehicle for the lift to the consumer. (N+3)
+
+// The operator:
+// 1. Waits until the lift is empty
+// 2. Either does nothing without repeating step 2, or:
+//   * If the lift is on the bottom level, called on the top level,
+//     and not called on the bottom level, then:
+//     3. The operator raises it.
+//   * If the lift is on the top level, called on the bottom level,
+//     and not called on the top level; then:
+//     3. The operator lowers it.
+// 4. Goes back to step 1.
+
+
+// The producer:
+// 1. Waits until it is empty.
+// 2. Either makes itself full or stays empty.
+// 3. Goes back to step 1.
+//
+// The consumer:
+// 1. Waits until it is full.
+// 2. Either makes itself empty, or stays full.
+// 3. Goes back to step 1.
+
+VEHICLE = (source.get -> move -> destination.put -> VEHICLE).
+
+SECTION = (get -> put -> SECTION).
+
+||CAR_PARK = (forall[i:1..N](
+    v[i]:VEHICLE || {v[i].destination, v[(i+1)%N].source}::SECTION)).

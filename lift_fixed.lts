@@ -1,0 +1,104 @@
+// N is the number of (regular, upper level) sections in the carpark.
+const N = 6
+
+// A vehicle has a source (I-1) and destination (I).
+// It continuously checks that the source is full,
+// then checks that the destiantion is empty,
+// then moves an item from the source to the destination,
+// then makes the destination full,
+// then makes the source empty.
+VEHICLE(I=0) = (
+    s[I-1].full.get -> s[I].empty.get ->
+    s[I-1].moveto.s[I] ->
+    s[I].full.put -> s[I-1].empty.put ->
+    VEHICLE
+).
+
+// A section must first be checked to be empty,
+// then made full, then be checked to be full,
+// then made empty, all in a loop.
+SECTION(I=3) = S,
+    S = (
+        s[I].empty.get -> s[I].full.put ->
+        s[I].full.get -> s[I].empty.put ->
+        S
+    ).
+
+// The first upper level section is special because to avoid a deadlock,
+// it needs to provide a mechanism to check whether it is free
+// (s[I].free) without acquiring the lock on its emptiness
+// (s[I].empty.get).
+
+FIRST_SECTION(I=2) = FS,
+    FS = (
+        s[I].free -> s[I].empty.get -> s[I].full.put ->
+        s[I].full.get -> s[I].empty.put ->
+        FS
+    ).
+
+// A producer behaves like a section but instead of being checked
+// to be empty and then made full,
+// it is able to be checked as being full when cars arrive.
+PRODUCER(I=0) = (arrive -> s[I].full.get -> s[I].empty.put -> PRODUCER).
+
+// A consumer behaves like a section but instead of being checked
+// to be full and then made empty,
+// it is able to be checked as being empty when cars depart.
+CONSUMER(I=N+3) = (s[I].empty.get -> s[I].full.put -> depart -> CONSUMER).
+
+// A lift behaves like two sections; but it can only act as one
+// of them at a time.
+//
+// s[I] is the lift's down->up section; items are put in the lift
+// at the lower level and removed at the upper level, at s[I].
+// The lift may only be called to the lower level if the
+// entrance is full (s[I-1].full.get).
+// To prevent a deadlock, we only allow the lift to go down when
+// called if there is space in the first upper level section for
+// another car (s[I+1].free, and LIFT_CALL_RAISE).
+// We use s[I+1].free and not s[I+1].empty.get because
+// we s[I+1].empty.get would lock the section before the launching
+// was ready to launch a car from the lift; which isn't allowed.
+//
+// s[J] is the lift's up->down section; items are put in the lift
+// at the upper level and removed at the lower level, at s[J].
+// The lift may only be called to the upper level if the
+// last normal section is full (s[J-1].full.get).
+LIFT(I=1, J=N+1) = L,
+    L = (
+        s[I-1].full.get -> LIFT_CALL_RAISE | s[J-1].full.get -> LIFT_LOWER
+    ),
+    LIFT_CALL_RAISE = (
+        s[I+1].free -> LIFT_RAISE | s[J-1].full.get -> LIFT_LOWER_RAISE
+    ),
+    LIFT_LOWER_RAISE = (
+        s[J].empty.get -> s[J].full.put -> s[J].full.get -> s[J].empty.put ->
+        LIFT_CALL_RAISE
+    ),
+    LIFT_RAISE = (
+        s[I].empty.get -> s[I].full.put -> s[I].full.get -> s[I].empty.put -> L
+    ),
+    LIFT_LOWER = (
+        s[J].empty.get -> s[J].full.put -> s[J].full.get -> s[J].empty.put -> L
+    ).
+
+// The whole car park has:
+// * 1 producer, the entrance
+// * 1 consumer, the exit,
+// * 1 lift; cars are moved from the producer to the lift to the first section
+//   and from the last section to the lift to the consumer.
+// * A special "first" section to prevent deadlocks, s[2].
+// * N-1 sections; the first section is s[3], the last section is s[N+1].
+// * N+3 vehicles, which move cars to s[i] for i in {1, 2, 3,..., N+3}.
+||CARPARK = (
+    PRODUCER(0) ||
+    CONSUMER(N+3) ||
+    LIFT(1, N+2) ||
+    FIRST_SECTION(2) ||
+    if (N > 2) then forall[i:3..N+1] (
+        SECTION(i)
+    ) ||
+    forall[i:1..N+3] (
+        VEHICLE(i)
+    )
+).

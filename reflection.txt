@@ -11,16 +11,16 @@ SWEN90004 Modelling Complex Software Systems in semester 1
 
 ### Resources
 
-Sections, the lift, and the entrance/exit were treated as resources
+Sections, the lift, and the entrance/consumer were treated as resources
 with uniform interfaces for getting and putting cars.
 The resources used an immitation of Go's channels for synchronisation.
 
-Sections have one entry and one exit.
+Sections have one entry and one consumer.
 
-The car park entrance has one exit but no entry, since it generates its own
+The car park entrance has one consumer but no entry, since it generates its own
 cars.
 
-The car park exit has one entry but no exit since cars are never taken from
+The car park consumer has one entry but no consumer since cars are never taken from
 it.
 
 The lift has many entrances and exits, one of each on all levels.
@@ -48,26 +48,25 @@ may own each resource at a time, the system is obviously safe.
 
 ## Experiments and Liveliness
 
-By experimenting, I found that it was either impossible or extremely unlikely
-for the entire upper level to be full, regardless of the number of sections.
+When experimenting, I observed no deadlocks for any parameters.
 
-The towing time is constant, and cars entering the lift at the carpark
-entrance must wait for the towing time.
-This gives any backed up cars at the end of the upper level time to move
-into position to immediately enter the lift when it is raised and emptied.
-This prevents the upper level from becoming full when there are cars backed up.
+If the upper level is not full, any empty space will 'move' backwards
+towards section 0, which would allow an arriving car to leave the lift
+and a departing car to enter the lift.
+This prevents deadlocks when the upper level is not full.
+
+Cars entering the lift at the entrance must wait for the towing time,
+giving a backed up car in the upper level enough time to move
+into position to immediately enter the lift when it is raised and emptied,
+preventing the carpark from becoming full.
 
 The lift can still go down without having a car in it if there are no cars
-backed up.
-In this case, the upper level is obviously not full.
+backed up, but then the car park is obviously not full.
+When the carpark is full and the operator manages to lower the lift before
+the loading vehicle starts waiting for it, then a deadlock can occur;
+but this is extremely rare.
 
-If the upper level is not full it has an empty space, which will move
-towards the first section as cars move forwards.
-Any car in a raised lift will therefore eventually have a space to move into,
-which means any car in the last section will eventually have an empty lift
-via which it can leave.
-
-These observations held regardless of the timing parameters.
+So, deadlocks are possible but vary rare.
 
 ## Extensions
 
