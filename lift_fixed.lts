@@ -1,3 +1,25 @@
+// 2016 semester 1 SWEN90004 Assignment 2b
+// Deadlock prone carpark model
+//
+// Author: Ned Pummeroy (nedp, 586530)
+//
+// The carpark system is modelled as a combination of resources
+// and actors.
+//
+// Most of the resources are the carpark sections.
+// The the entrance and exit of the carpark are also resources.
+// The lift can be either one of two resources at a time;
+// one resource for going up, one for going down.
+// All of these resources are represented as s[X] where X is
+// between 0 and N+3 inclusive.
+//
+// The actors in the system are the producer, the consumer, and
+// the vehicles.
+// These control the flow of emptiness and fullness through the
+// system.
+// We don't consider the flow of cars, because as far as safety and
+// liveness are concerned, the cars themselves are irrelevant.
+
 // N is the number of (regular, upper level) sections in the carpark.
 const N = 6
 
@@ -37,6 +59,8 @@ FIRST_SECTION(I=2) = (
     FIRST_SECTION
 ).
 
+// No resource may be locked or released twice in a row
+// and all resources must be locked before being released.
 property NO_DOUBLE_LOCK(I=0) = (
     s[I].lock[STATES] -> s[I].release[STATES] -> NO_DOUBLE_LOCK
 ).
@@ -62,7 +86,9 @@ CONSUMER(I=N+3) = (
 // Many "section-like" resources are part of the lift; but only
 // of them may be active at a time.
 // In the carpark for this project, there are exactly two lift sections,
-// with the resources s[I], and s[J].
+// with the resources s[I], and s[J]; but it could be extended easily
+// to have more sections, for example if we wanted three levels
+// in the carpark.
 //
 // s[I] is the lift's down->up section; items are release in the lift
 // at the lower level and removed at the upper level, at s[I].
