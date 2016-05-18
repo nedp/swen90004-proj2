@@ -1,77 +1,100 @@
 // N is the number of (regular, upper level) sections in the carpark.
 const N = 6
 
+const EMPTY = 0
+const FULL = 1
+range STATES = EMPTY..FULL
+
 // A vehicle has a source (I-1) and destination (I).
-// It continuously checks that the source is full,
-// then checks that the destiantion is empty,
+// It continuously checks that the source is FULL,
+// then checks that the destiantion is EMPTY,
 // then moves an item from the source to the destination,
-// then makes the destination full,
-// then makes the source empty.
+// then makes the destination FULL,
+// then makes the source EMPTY.
 VEHICLE(I=0) = (
-    s[I-1].full.get -> s[I].empty.get ->
+    s[I-1].lock[FULL] -> s[I].lock[EMPTY] ->
     s[I-1].moveto.s[I] ->
-    s[I].full.put -> s[I-1].empty.put ->
+    s[I].release[FULL] -> s[I-1].release[EMPTY] ->
     VEHICLE
 ).
 
-// A section must first be checked to be empty,
-// then made full, then be checked to be full,
-// then made empty, all in a loop.
-SECTION(I=1) = S,
-    S = (
-        s[I].empty.get -> s[I].full.put ->
-        s[I].full.get -> s[I].empty.put ->
-        S
-    ).
+// A section must first be checked to be EMPTY,
+// then made FULL, then be checked to be FULL,
+// then made EMPTY, all in a loop.
+SECTION(I=2) = (
+    s[I].lock[EMPTY] -> s[I].release[FULL] ->
+    s[I].lock[FULL] -> s[I].release[EMPTY] ->
+    SECTION
+).
+
+property NO_DOUBLE_LOCK(I=0) = (
+    s[I].lock[STATES] -> s[I].release[STATES] -> NO_DOUBLE_LOCK
+).
 
 // A producer behaves like a section but instead of being checked
-// to be empty and then made full,
-// it is able to be checked as being full when cars arrive.
-PRODUCER(I=0) = (arrive -> s[I].full.get -> s[I].empty.put -> PRODUCER).
+// to be EMPTY and then made FULL,
+// it is able to be checked as being FULL when cars arrive.
+PRODUCER(I=0) = (
+    s[I].lock[EMPTY] -> arrive -> s[I].release[FULL] ->
+    s[I].lock[FULL] -> s[I].release[EMPTY] ->
+    PRODUCER
+).
 
 // A consumer behaves like a section but instead of being checked
-// to be full and then made empty,
-// it is able to be checked as being empty when cars depart.
-CONSUMER(I=N+3) = (s[I].empty.get -> s[I].full.put -> depart -> CONSUMER).
+// to be FULL and then made EMPTY,
+// it is able to be checked as being EMPTY when cars depart.
+CONSUMER(I=N+3) = (
+    s[I].lock[EMPTY] -> s[I].release[FULL] ->
+    s[I].lock[FULL] -> depart -> s[I].release[EMPTY] ->
+    CONSUMER
+).
 
-// A lift behaves like two sections; but it can only act as one
-// of them at a time.
+// Many "section-like" resources are part of the lift; but only
+// of them may be active at a time.
+// In the carpark for this project, there are exactly two lift sections,
+// with the resources s[I], and s[J].
 //
-// s[I] is the lift's down->up section; items are put in the lift
+// s[I] is the lift's down->up section; items are release in the lift
 // at the lower level and removed at the upper level, at s[I].
 // The lift may only be called to the lower level if the
-// entrance is full (s[I-1].full.get).
+// entrance is FULL (s[I-1].lock[FULL]).
 //
-// s[J] is the lift's up->down section; items are put in the lift
+// s[J] is the lift's up->down section; items are release in the lift
 // at the upper level and removed at the lower level, at s[J].
 // The lift may only be called to the upper level if the
-// last normal section is full (s[J-1].full.get).
-LIFT(I=1, J=N+1) = L,
-    L = (
-        s[I-1].full.get -> LIFT_RAISE | s[J-1].full.get -> LIFT_LOWER
-    ),
-    LIFT_RAISE = (
-        s[I].empty.get -> s[I].full.put -> s[I].full.get -> s[I].empty.put -> L
-    ),
-    LIFT_LOWER = (
-        s[J].empty.get -> s[J].full.put -> s[J].full.get -> s[J].empty.put -> L
-    ).
+// last normal section is FULL (s[J-1].lock[FULL]).
+LIFT(I=1, J=N+2) = (
+      s[I].lock[EMPTY] -> s[I].release[EMPTY] -> LIFT
+    | s[J].lock[EMPTY] -> s[J].release[EMPTY] -> LIFT
+).
+LIFT_SECTION(I=1) = (
+    s[I-1].lock[EMPTY] ->
+    s[I].lock[EMPTY] -> s[I].release[FULL] ->
+    s[I].lock[FULL] -> s[I].release[EMPTY] ->
+    LIFT_SECTION
+).
 
 // The whole car park has:
 // * 1 producer, the entrance
 // * 1 consumer, the exit,
 // * 1 lift; cars are moved from the producer to the lift to the first section
 //   and from the last section to the lift to the consumer.
+// * 2 lift-sections; bottom to top s[1] and top to bottom s[N+2].
 // * N sections; the first section is s[2], the last section is s[N+1].
 // * N+3 vehicles, which move cars to s[i] for i in {1, 2, 3,..., N+3}.
 ||CARPARK = (
     PRODUCER(0) ||
     CONSUMER(N+3) ||
     LIFT(1, N+2) ||
-    forall[i:1..N] ( // N sections,
-        SECTION(i+1) // from 2 to N+1
+    LIFT_SECTION(1) ||
+    LIFT_SECTION(N+2) ||
+    forall[i:2..N+1] ( // N sections,
+        SECTION(i) // from 2 to N+1
     ) ||
     forall[i:1..N+3] (
         VEHICLE(i)
+    ) ||
+    forall[i:0..N+3] (
+        NO_DOUBLE_LOCK(i)
     )
 ).
