@@ -59,6 +59,16 @@ FIRST_SECTION(I=2) = (
     FIRST_SECTION
 ).
 
+// A resource may not be considered free unless it is
+// both unlocked and empty.
+// Resources which have a free check start out free,
+// since they start unlocked and empty.
+property NO_FREE_UNLESS_EMPTY(I=2) = (
+    s[I].free -> s[I].lock[STATES] ->
+    s[I].release[STATES] -> s[I].lock[STATES] ->
+    s[I].release[EMPTY] -> NO_FREE_UNLESS_EMPTY
+).
+
 // No resource may be locked or released twice in a row
 // and all resources must be locked before being released.
 property NO_DOUBLE_LOCK(I=0) = (
@@ -135,5 +145,6 @@ LIFT_SECTION(I=1) = (
     ) ||
     forall[i:0..N+3] (
         NO_DOUBLE_LOCK(i)
-    )
+    ) ||
+    NO_FREE_UNLESS_EMPTY(2)
 ).
