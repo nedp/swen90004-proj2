@@ -10,7 +10,7 @@
 // The the entrance and exit of the carpark are also resources.
 // The lift can be either one of two resources at a time;
 // one resource for going up, one for going down.
-// All of these resources are represented as s[X] where X is
+// All of these resources are represented as resource[X] where X is
 // between 0 and N+3 inclusive.
 //
 // The actors in the system are the producer, the consumer, and
@@ -27,124 +27,144 @@ const EMPTY = 0
 const FULL = 1
 range STATES = EMPTY..FULL
 
+// ===== Actors
+
 // A vehicle has a source (I-1) and destination (I).
 // It continuously checks that the source is FULL,
-// then checks that the destiantion is EMPTY,
+// then checks that the destination is EMPTY,
 // then moves an item from the source to the destination,
 // then makes the destination FULL,
 // then makes the source EMPTY.
-VEHICLE(I=0) = (
-    s[I-1].lock[FULL] -> s[I].lock[EMPTY] ->
-    s[I-1].moveto.s[I] ->
-    s[I].release[FULL] -> s[I-1].release[EMPTY] ->
+VEHICLE(I=1) = (
+    resource[I-1].lock[FULL] -> resource[I].lock[EMPTY] ->
+    resource[I-1].move_to.resource[I] ->
+    resource[I].release[FULL] -> resource[I-1].release[EMPTY] ->
     VEHICLE
-).
-
-// A section must first be checked to be EMPTY,
-// then made FULL, then be checked to be FULL,
-// then made EMPTY, all in a loop.
-SECTION(I=3) = (
-    s[I].lock[EMPTY] -> s[I].release[FULL] ->
-    s[I].lock[FULL] -> s[I].release[EMPTY] ->
-    SECTION
-).
-
-// The first section is special because the lift must check that
-// it is free before allowing a car to be raised.
-// This check shouldn't be synchronised with the vehicles, so it
-// needs a new action type, `free`.
-FIRST_SECTION(I=2) = (
-    s[I].free -> s[I].lock[EMPTY] -> s[I].release[FULL] ->
-    s[I].lock[FULL] -> s[I].release[EMPTY] ->
-    FIRST_SECTION
-).
-
-// A resource may not be considered free unless it is
-// both unlocked and empty.
-// Resources which have a free check start out free,
-// since they start unlocked and empty.
-property NO_FREE_UNLESS_EMPTY(I=2) = (
-    s[I].free -> s[I].lock[STATES] ->
-    s[I].release[STATES] -> s[I].lock[STATES] ->
-    s[I].release[EMPTY] -> NO_FREE_UNLESS_EMPTY
-).
-
-// No resource may be locked or released twice in a row
-// and all resources must be locked before being released.
-property NO_DOUBLE_LOCK(I=0) = (
-    s[I].lock[STATES] -> s[I].release[STATES] -> NO_DOUBLE_LOCK
 ).
 
 // A producer behaves like a section but instead of being checked
 // to be EMPTY and then made FULL,
 // it is able to be checked as being FULL when cars arrive.
-PRODUCER(I=0) = (
-    s[I].lock[EMPTY] -> arrive -> s[I].release[FULL] ->
-    s[I].lock[FULL] -> s[I].release[EMPTY] ->
+PRODUCER = (
+    lock[EMPTY] -> arrive -> release[FULL] ->
+    lock[FULL] -> release[EMPTY] ->
     PRODUCER
 ).
 
 // A consumer behaves like a section but instead of being checked
 // to be FULL and then made EMPTY,
 // it is able to be checked as being EMPTY when cars depart.
-CONSUMER(I=N+3) = (
-    s[I].lock[EMPTY] -> s[I].release[FULL] ->
-    s[I].lock[FULL] -> depart -> s[I].release[EMPTY] ->
+CONSUMER = (
+    lock[EMPTY] -> release[FULL] ->
+    lock[FULL] -> depart -> release[EMPTY] ->
     CONSUMER
 ).
 
-// Many "section-like" resources are part of the lift; but only
-// of them may be active at a time.
-// In the carpark for this project, there are exactly two lift sections,
-// with the resources s[I], and s[J]; but it could be extended easily
-// to have more sections, for example if we wanted three levels
-// in the carpark.
-//
-// s[I] is the lift's down->up section; items are release in the lift
-// at the lower level and removed at the upper level, at s[I].
-// The lift may only be called to the lower level if the
-// entrance is FULL (s[I-1].lock[FULL]).
-//
-// s[J] is the lift's up->down section; items are release in the lift
-// at the upper level and removed at the lower level, at s[J].
-// The lift may only be called to the upper level if the
-// last normal section is FULL (s[J-1].lock[FULL]).
-LIFT(I=1, J=N+2) = (
-      s[I+1].free -> s[I].lock[EMPTY] -> s[I].release[EMPTY] -> LIFT
-    | s[J].lock[EMPTY] -> s[J].release[EMPTY] -> LIFT
+// ===== Actor safety properties using LTL
+
+// A vehicle enters its critical section when locking its destination
+// in the EMPTY state,
+// and leaves the critical section when releasing its destination
+// in the FULL state.
+fluent CRITICAL_SECTION[i:0..N+3] =
+    <{resource[i].lock[EMPTY]},{resource[i].release[FULL]}>
+
+// No two adjacent vehicles may be in their critical sections
+// simultaneously, since they share a section.
+assert SAFE_SHARED_SECTIONS = []forall[i:1..N+2]
+    (!CRITICAL_SECTION[i] || !CRITICAL_SECTION[i+1])
+
+// In addition to the normal section bounds:
+// the loading and launching vehicles must not be in their critical
+// sections simultaneously, and...
+assert SAFE_LIFT_ACCESS_LOWER =
+    [](!CRITICAL_SECTION[1] || !CRITICAL_SECTION[N+3])
+// the entry and exit vehicles must not be in their critical
+// sections simultaneously.
+assert SAFE_LIFT_ACCESS_UPPER =
+    [](!CRITICAL_SECTION[2] || !CRITICAL_SECTION[N+2])
+
+// No vehicle may be permanently locked out of its critical section.
+assert NO_STARVATION =
+    []forall[i:0..N+3] <>CRITICAL_SECTION[i]
+
+// ===== Resources
+
+// A section must first be checked to be EMPTY,
+// then made FULL, then be checked to be FULL,
+// then made EMPTY, all in a loop.
+SECTION = (lock[EMPTY] -> SECTION_USE),
+    SECTION_USE = (release[x:STATES] -> lock[x] -> SECTION_USE).
+
+// No resource may be locked or released twice in a row
+// and all resources must be locked before being released.
+property NO_DOUBLE_LOCK = (
+    lock[STATES] -> release[STATES] -> NO_DOUBLE_LOCK
 ).
-LIFT_SECTION(I=1) = (
-    s[I-1].lock[EMPTY] ->
-    s[I].lock[EMPTY] -> s[I].release[FULL] ->
-    s[I].lock[FULL] -> s[I].release[EMPTY] ->
-    LIFT_SECTION
+
+// Many resources/sections are part of the lift; but only
+// of them may be used at a time.
+// In this way, the lift being used to raise an item,
+// and the lift being used to lower an item, are modelled as
+// mutually exclusive but different resources.
+LIFT = (
+    lock[EMPTY] -> release[EMPTY] -> LIFT
 ).
+
+// ===== Deadlock prevention
+
+// To prevent a deadlock, we only allow a car to enter the lift
+// to go up if the first upper level section is empty.
+FREE_MONITOR = (
+    free -> lock[EMPTY] -> release[EMPTY] -> FREE_MONITOR
+).
+LIFT_GUARD(IN=1, OUT=2) = (
+    resource[OUT].free -> resource[IN].lock[EMPTY] -> LIFT_GUARD
+).
+
+// ===== The system
 
 // The whole car park has:
 // * 1 producer, the entrance
 // * 1 consumer, the exit,
-// * 1 lift; cars are moved from the producer to the lift to the first section
-//   and from the last section to the lift to the consumer.
-// * 2 lift-sections; bottom to top s[1] and top to bottom s[N+2].
-// * N sections; the first section is s[2], the last section is s[N+1].
-// * N+3 vehicles, which move cars to s[i] for i in {1, 2, 3,..., N+3}.
+// * 1 lift; cars are moved from the producer to the lift to the first
+//   section and from the last section to the lift to the consumer.
+// * N+3 section-like resources;
+//   the first actual section is resource[2], the last section is
+//   resource[N+1].
+//   The lift going up is considered a section, and so is the lift going
+//   down.
+// * N+3 vehicles, which move cars to resource[i] for i in
+//   {1, 2, 3,..., N+3}.
+//
+// It also has the deadlock prevention mechanisms defined above.
+//
+// The effect of the operator is modelled by:
+// * NOT tracking whether the lift is lowered or raised, but instead:
+// * allowing the lift to be used to raise items, or lower items twice
+//   in a row.
+// That this is identical to having an operator is claimed by me to be self
+// evident.
 ||CARPARK = (
-    PRODUCER(0) ||
-    CONSUMER(N+3) ||
-    LIFT(1, N+2) ||
-    LIFT_SECTION(1) ||
-    LIFT_SECTION(N+2) ||
-    FIRST_SECTION(2) ||
-    if (N>2) then (
-        forall[i:3..N+1] ( // N-1 sections,
-            SECTION(i) // from 3 to N+1
-        )
-    ) ||
+    // Actors
+    resource[0]:PRODUCER ||
+    resource[N+3]:CONSUMER ||
     forall[i:1..N+3] (
         VEHICLE(i)
     ) ||
-    forall[i:0..N+3] (
-        NO_DOUBLE_LOCK(i)
+
+    // Resources
+    {resource[1],resource[N+2]}::LIFT ||
+    forall[i:1..N+2] ( // N+3 sections,
+        resource[i]:SECTION // from 1 to N+2
     ) ||
-    NO_FREE_UNLESS_EMPTY(2)
+
+    // Safety
+    forall[i:0..N+3] (
+        resource[i]::NO_DOUBLE_LOCK
+    ) ||
+
+    // Deadlock prevention
+    resource[2]:FREE_MONITOR ||
+    LIFT_GUARD(1, 2)
 ).

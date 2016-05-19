@@ -1,0 +1,63 @@
+# Multilevel Carpark LTSA Reflection
+
+Part of assignment 2b for The University of Melbourne subject
+SWEN90004 Modelling Complex Software Systems in semester 1
+2016.
+
+**Author:** Ned Pummeroy (nedp, 586530)
+**Word count:** 302
+
+## First LTSA model (lift.lts)
+
+The design of the model is reflective of the design of my Java
+implementation.
+
+The design itself is documented in the source.
+
+### Correct behaviour
+
+From manually playing with the LTSA model using the GUI,
+it can be seen that generally cars arrive, then are moved
+through successive sections, then leave the carpark.
+This is the desired behaviour.
+
+### Safety
+
+The safety properties of the system are:
+
+* No section may be locked twice without being released in between, and
+* No section may be released without first being locked.
+
+As expected, the model satisfies this property.
+
+The LTL properties are not verifiable because of the deadlock
+described below.
+
+### Liveness
+
+The system is prone to deadlocking.
+This occurs when the lift is locked to be raised when the upper
+level is full.
+The car in the lift can't leave it because the upper level is full.
+No cars can enter the lift to leave the upper level because the lift
+is locked.
+
+This deadlock occured in the Java implementation and was discussed
+in assignment 2A's reflection.
+
+## Second LTSA model (lift_fixed.lts)
+
+The fixed model was updated by making the lift check that the first
+upper level section was free before allowing it to be locked to raise
+a car.
+
+### Safety
+
+The updated model has a new safety property, because the first section
+cannnot be considered 'free' unless it is both unlocked and empty.
+
+### Liveness
+
+The addition of the free check was sufficient to eliminate the deadlock.
+LTL properties confirm that there is no starvation, and mutual exclusion
+on resource access is achieved.
