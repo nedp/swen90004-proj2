@@ -10,7 +10,7 @@ package com.github.nedp.swen90004.carpark;
  *
  * See the implemented interface for documentation on overridden methods.
  */
-class Section implements Resource<Car> {
+class Section implements Resource<Car>, Freeable {
 
     // Should uniquely identify the section, assisting with state and event
     // messages.
@@ -22,6 +22,10 @@ class Section implements Resource<Car> {
 
     // A channel for synchronising the getting and putting of Cars.
     private final Channel<Car> full = new Channel<>();
+
+    // A channel for (internal) signaling of whether the section is considered
+    // 'free' for the purposes of the Freeable interface.
+    private final Channel<Object> free = new Channel<>();
 
     // A message characterising the act of getting something from the resource.
     private final String getMessage;
@@ -43,11 +47,12 @@ class Section implements Resource<Car> {
         this.getMessage = getMessage;
         this.putMessage = putMessage;
 
-        // Signals internally that the section is available.
+        // Signal that the section is initially both available and free.
         // It should be impossible for this call to wait, because it is
         // a fresh channel.
         try {
             empty.put(new Object());
+            free.put(new Object());
         } catch (InterruptedException e) {
             throw new RuntimeException("Unexpected wait!", e);
         }
@@ -67,6 +72,9 @@ class Section implements Resource<Car> {
     @Override
     public void makeAvailable() throws InterruptedException {
         empty.put(new Object());
+
+        // A Section can be considered free after it has been made available.
+        free.put(new Object());
     }
 
     @Override
@@ -92,10 +100,21 @@ class Section implements Resource<Car> {
     @Override
     public void acquireWhenEmpty() throws InterruptedException {
         empty.get();
+
+        // When a section is acquired while empty, it can no longer be
+        // considered free until it is made available again.
+        free.get();
     }
 
     /** Returns a human readable representation of this section's state. */
     String state() {
         return String.format("{%4d:%6s}", id, car);
+    }
+
+    @Override
+    public void waitUntilFree() throws InterruptedException {
+        // We don't want to acquire any sort of lock with this method,
+        // we just want to make sure we wait until the section is in fact free.
+        free.put(free.get());
     }
 }

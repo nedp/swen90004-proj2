@@ -15,7 +15,7 @@ class Main {
     private final Lift<Car> lift = new Lift<>(LEVELS, "lift");
 
     // Create a list of car park spaces
-    private final List<Section> sections = new ArrayList<>(2);
+    private final List<Section> sections = new ArrayList<>(Param.SECTIONS);
 
     // Generate the entrance of the carpark and the lift operator.
     private final Entrance entrance = new Entrance();
@@ -29,14 +29,17 @@ class Main {
         // Create the exit of the carpark.
         final Exit<Car> exit = new Exit<>();
 
-        // Create the entrances and exits to the lift.
-        final Resource<Car> raiser = new LiftResource(lift, 0, LEVELS - 1);
-        final Resource<Car> lowerer = new LiftResource(lift, LEVELS - 1, 0);
-
         // Generate the individual sections
         for (Integer i = 0; i < Param.SECTIONS; i += 1) {
             sections.add(new Section(i));
         }
+
+        // Create the entrances and exits to the lift.
+        // The raiser should be guarded like in the LTSA model to prevent
+        // deadlocks.
+        final Resource<Car> raiser =
+                new GuardedLiftResource(lift, 0, LEVELS - 1, sections.get(0));
+        final Resource<Car> lowerer = new LiftResource(lift, LEVELS - 1, 0);
 
         // Generate the towing vehicle which moves new arrivals into the lift.
         vehicles.add(new Vehicle<>("arrivals", entrance, raiser));
